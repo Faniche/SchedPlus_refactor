@@ -4,10 +4,12 @@
 
 #include "Input.h"
 
+#include <utility>
+
 void Input::setNodesAndLinks() {
     vSetNodesAndLinks();
 }
 
-void Input::setFlows(uint32_t flowNum) {
-    vSetFlows(flowNum);
+void Input::setStreams(uint32_t streamsNum ,std::string streamFilePath) {
+    vSetStreams(streamsNum, std::move(streamFilePath));
 }

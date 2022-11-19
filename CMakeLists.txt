@@ -16,11 +16,21 @@ add_executable(SchedPlus main.cpp
         src/components/Port.cpp src/components/Port.h
         src/components/Frame.cpp src/components/Frame.h
         src/components/Route.cpp src/components/Route.h
-        src/components/DirectedLink.cpp src/components/DirectedLink.h src/topology/Input.cpp src/topology/Input.h src/topology/Line_2sw_2es.cpp src/topology/Line_2sw_2es.h src/components/GateControlEntry.cpp src/components/GateControlEntry.h src/components/FullDuplexLink.cpp src/components/FullDuplexLink.h src/solution/SmtSolver.cpp src/solution/SmtSolver.h src/solution/Solver.cpp src/solution/Solver.h src/solution/GASolver.cpp src/solution/GASolver.h)
+        src/components/DirectedLink.cpp src/components/DirectedLink.h
+        src/topology/Input.cpp src/topology/Input.h
+        src/topology/Line_2sw_2es.cpp src/topology/Line_2sw_2es.h
+        src/components/GateControlEntry.cpp src/components/GateControlEntry.h
+        src/components/FullDuplexLink.cpp src/components/FullDuplexLink.h
+        src/solution/SmtSolver.cpp src/solution/SmtSolver.h
+        src/solution/Solver.cpp src/solution/Solver.h
+        src/solution/GASolver.cpp src/solution/GASolver.h)
 
-target_link_libraries(SchedPlus PUBLIC spdlog
+target_link_libraries(SchedPlus PUBLIC
+        "${PROJECT_SOURCE_DIR}/lib/spdlog/build/libspdlog.a"
         pthread
         CLI11::CLI11
         z3)
+
+target_include_directories(SchedPlus PUBLIC lib/spdlog/include)
 
 add_executable(getmt getMt.cpp)

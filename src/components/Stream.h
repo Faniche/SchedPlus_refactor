@@ -32,8 +32,8 @@ protected:
     std::vector<std::shared_ptr<Route>> routes;
 
     uint32_t selectedRouteInx = 0;
-//    std::vector<Frame>
-    std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> frames;
+    std::vector<std::shared_ptr<Frame>> frames;
+    std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> linkFrames;
 
 public:
     Stream(stream_id id, uint64_t period, uint32_t length, PRIORITY_CODE_POINT pcp, std::shared_ptr<Node> &src, std::shared_ptr<Node> &dest);
@@ -74,7 +74,7 @@ public:
 
     void setSelectedRouteInx(uint32_t selectedRouteInx);
 
-    [[nodiscard]] const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &getFrames() const;
+    [[nodiscard]] const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &getLinkFrames() const;
 
     void addFrames(int macrotick);
 };

@@ -3,6 +3,7 @@
 //
 
 
+#include <fstream>
 #include "Line_2sw_2es.h"
 
 void Line_2sw_2es::vSetNodesAndLinks() {
@@ -39,22 +40,55 @@ void Line_2sw_2es::vSetNodesAndLinks() {
     });
 
     for (int i = 0; i < nodes.size(); ++i) {
-        nodeMap.emplace(std::make_pair(i, nodes[i]));
+        nodeIdMap.emplace(std::make_pair(i, nodes[i]));
+        nodeNameMap.emplace(std::make_pair(nodes[i]->getName(), nodes[i]));
     }
 }
 
-void Line_2sw_2es::vSetFlows(uint32_t flowNum) {
-    for (int i = 0; i < flowNum; ++i) {
-        node_id a, b;
-        if (i <= flowNum / 2) {
-            a = 0;
-            b = 1;
-        } else {
-            a = 1;
-            b = 0;
-        }
-        auto stream = std::make_shared<Stream>(i, 1500, 1000, P5, nodeMap[a], nodeMap[b]);
+void Line_2sw_2es::vSetStreams(uint32_t streamsNum, std::string streamFilePath) {
+    std::ifstream stream_file(streamFilePath);
+    nlohmann::json jStreams;
+    stream_file >> jStreams;
+    for (auto & jStream : jStreams) {
+        stream_id id = jStream["id"].get<unsigned>();
+//        uint64_t offset = (*iter)["offset"].get<unsigned>();
+        uint64_t period = jStream["period"].get<unsigned>();
+        uint64_t length = jStream["length"].get<unsigned>();
+        PRIORITY_CODE_POINT pcp = jStream["pcp"].get<nlohmann::json::number_unsigned_t>();
+        std::string src = jStream["src"].get<nlohmann::json::string_t>();
+        std::string dest = jStream["dest"].get<nlohmann::json::string_t>();
+        auto stream = std::make_shared<Stream>(
+            id, period, length, static_cast<PRIORITY_CODE_POINT>(pcp), nodeNameMap[src], nodeNameMap[dest]
+        );
+        streams.push_back(stream);
+//        if (pcp == P6) {
+//            /* unit: ns*/
+//            DeliveryGuarantee deliveryGuarantee(DDL, stream.getPeriod());
+//            stream.addDeliveryGuarantee(deliveryGuarantee);
+//        } else if (pcp == P5) {
+//            /* Typically less than 90% of period. */
+//            /* unit: ns*/
+//            DeliveryGuarantee deliveryGuarantee(E2E, stream.getPeriod() / 10);
+//            stream.addDeliveryGuarantee(deliveryGuarantee);
+//        }
+//        Util::calAllRoutes(nodeIdMap, flow, graph, links);
+//        flows.push_back(flow);
+//        oss.str("");
+//        flow.toString(oss);
+//        spdlog::get("console")->info("flow_{}: {}", flow.getId(), oss.str());
+//
 
-
+//    for (int i = 0; i < streamsNum; ++i) {
+//        node_id a, b;
+//        if (i <= streamsNum / 2) {
+//            a = 0;
+//            b = 1;
+//        } else {
+//            a = 1;
+//            b = 0;
+//        }
+//        auto stream = std::make_shared<Stream>(i, 1500, 1000, P5, nodeIdMap[a], nodeIdMap[b]);
+//
+//
     }
 }

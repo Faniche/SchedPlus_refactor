@@ -19,14 +19,16 @@ int g_node_id = 0;
 int g_link_id = 0;
 
 int main(int argc, char **argv) {
-    CLI::App app{"Schedplus: based on GA to schedule time sensitive flows."};
+    CLI::App app{"Schedplus: based on GA to schedule time sensitive streams."};
     int option_topology = 0;
     std::string topology_description = "Topology index:\n\t1: line_1sw_2es\n\t2: line_2sw_2es\n\t3: ring_4sw";
     app.add_option("-t, --topology", option_topology, topology_description);
     std::string option_ned_file;
     app.add_option("-n, --ned", option_ned_file, "Net description file name");
+    std::string streamFilePath;
+    app.add_option("-s, --stream", streamFilePath, "Streams json file");
     int option_flow_number = 2;
-    app.add_option("-f, --flows", option_flow_number, "The number of flow");
+    app.add_option("-f, --streams", option_flow_number, "The number of flow");
     int option_generation_number = 100;
     app.add_option("-g, --generation", option_generation_number, "The number of generation");
     bool flag_debug = {false};
@@ -47,7 +49,7 @@ int main(int argc, char **argv) {
         spd::set_pattern("[%H:%M:%S] [%^%l%$] %s:%# %v");
         auto input = std::make_shared<Line_2sw_2es>();
         input->setNodesAndLinks();
-        input->setFlows(option_flow_number);
+        input->setStreams(option_flow_number, streamFilePath);
 //        auto es0 = std::dynamic_pointer_cast<EndSystem>(input->nodes[0]);
 //        auto sw0 = std::dynamic_pointer_cast<Switch>(input->nodes[2]);
         auto gaSolver = std::make_unique<GASolver>(input);
