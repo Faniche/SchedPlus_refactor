@@ -22,3 +22,5 @@ target_link_libraries(SchedPlus PUBLIC spdlog
         pthread
         CLI11::CLI11
         z3)
+
+add_executable(getmt getMt.cpp)
