@@ -15,13 +15,14 @@ Stream::Stream(stream_id id,
                                               pcp(pcp),
                                               src(src),
                                               dest(dest) {
-    size_t frame_num = length / MTU + 1;
-    if (frame_num == 1) {
-
-    }
-    for (int i = 0; i < frame_num; ++i) {
-        uint32_t frame_len = length - i * MTU;
-    }
+//    size_t frame_num = length / MTU + 1;
+//    if (frame_num == 1) {
+//        Frame frame(std::make_pair(id, 0), 0, length, period);
+////        frames
+//    }
+//    for (frame_id i = 0; i < frame_num; ++i) {
+//        uint32_t frame_len = length - i * MTU;
+//    }
 }
 
 stream_id Stream::getId() const {
@@ -96,8 +97,8 @@ void Stream::setSelectedRouteInx(uint32_t _selectedRouteInx) {
     selectedRouteInx = _selectedRouteInx;
 }
 
-const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &Stream::getFrames() const {
-    return frames;
+const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &Stream::getLinkFrames() const {
+    return linkFrames;
 }
 
 void Stream::addFrames(int macrotick) {
