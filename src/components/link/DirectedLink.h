@@ -5,8 +5,8 @@
 #ifndef SCHEDPLUS_REFACTOR_DIRECTEDLINK_H
 #define SCHEDPLUS_REFACTOR_DIRECTEDLINK_H
 
-#include "Node.h"
-#include "Port.h"
+#include "../node/Node.h"
+#include "../node/Port.h"
 
 extern int g_link_id;
 

@@ -7,9 +7,9 @@
 
 
 #include "Input.h"
-#include "../components/EndSystem.h"
-#include "../components/Switch.h"
-#include "../components/FullDuplexLink.h"
+#include "../components/node/EndSystem.h"
+#include "../components/node/Switch.h"
+#include "../components/link/FullDuplexLink.h"
 
 class Line_2sw_2es: public Input{
 private:

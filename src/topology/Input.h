@@ -8,9 +8,9 @@
 
 #include <vector>
 #include <memory>
-#include "../components/Node.h"
-#include "../components/DirectedLink.h"
-#include "../components/Stream.h"
+#include "../components/node/Node.h"
+#include "../components/link/DirectedLink.h"
+#include "../components/stream/Stream.h"
 #include "../../lib/json/json.hpp"
 
 class Input {

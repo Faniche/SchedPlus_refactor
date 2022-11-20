@@ -7,7 +7,7 @@
 
 #include <cstdint>
 #include <string>
-#include "../type.h"
+#include "../../type.h"
 
 extern int g_node_id;
 

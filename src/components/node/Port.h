@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstdint>
 #include <string>
-#include "../type.h"
+#include "../../type.h"
 #include "GateControlEntry.h"
 
 extern int g_port_counter;

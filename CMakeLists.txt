@@ -8,17 +8,17 @@ add_subdirectory(lib/CLI11
 
 add_executable(SchedPlus main.cpp
         src/type.h
-        src/components/Stream.cpp               src/components/Stream.h
-        src/components/DeliveryGuarantee.cpp    src/components/DeliveryGuarantee.h
-        src/components/Node.cpp                 src/components/Node.h
-        src/components/Switch.cpp               src/components/Switch.h
-        src/components/EndSystem.cpp            src/components/EndSystem.h
-        src/components/Port.cpp                 src/components/Port.h
-        src/components/Frame.cpp                src/components/Frame.h
-        src/components/Route.cpp                src/components/Route.h
-        src/components/DirectedLink.cpp         src/components/DirectedLink.h
-        src/components/GateControlEntry.cpp     src/components/GateControlEntry.h
-        src/components/FullDuplexLink.cpp       src/components/FullDuplexLink.h
+        src/components/stream/Stream.cpp src/components/stream/Stream.h
+        src/components/stream/DeliveryGuarantee.cpp src/components/stream/DeliveryGuarantee.h
+        src/components/node/Node.cpp src/components/node/Node.h
+        src/components/node/Switch.cpp src/components/node/Switch.h
+        src/components/node/EndSystem.cpp src/components/node/EndSystem.h
+        src/components/node/Port.cpp src/components/node/Port.h
+        src/components/stream/Frame.cpp src/components/stream/Frame.h
+        src/components/link/Route.cpp src/components/link/Route.h
+        src/components/link/DirectedLink.cpp src/components/link/DirectedLink.h
+        src/components/node/GateControlEntry.cpp src/components/node/GateControlEntry.h
+        src/components/link/FullDuplexLink.cpp src/components/link/FullDuplexLink.h
         src/topology/Input.cpp                  src/topology/Input.h
         src/topology/Line_2sw_2es.cpp           src/topology/Line_2sw_2es.h
         src/solution/SmtSolver.cpp              src/solution/SmtSolver.h

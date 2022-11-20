@@ -8,12 +8,12 @@
 
 #include <vector>
 #include <map>
-#include "../type.h"
+#include "../../type.h"
 #include "DeliveryGuarantee.h"
-#include "Node.h"
-#include "Route.h"
+#include "../node/Node.h"
+#include "../link/Route.h"
 #include "Frame.h"
-#include "DirectedLink.h"
+#include "../link/DirectedLink.h"
 
 
 class Stream {
