@@ -13,9 +13,7 @@ enum DELIVERY_GUARANTEE {
     BANDWIDTH,
     DDL,
     E2E,
-    JITTER,
-    PKT_LOSE_RATE,
-    NONE
+    BE
 };
 
 class DeliveryGuarantee {
@@ -47,8 +45,6 @@ public:
     [[nodiscard]] uint64_t getUpperObj() const;
 
     void setUpperObj(uint64_t upperObj);
-
-    static std::string toString (const DeliveryGuarantee& deliveryGuarantee);
 };
 
 
