@@ -15,14 +15,16 @@ Stream::Stream(stream_id id,
                                               pcp(pcp),
                                               src(src),
                                               dest(dest) {
-//    size_t frame_num = length / MTU + 1;
-//    if (frame_num == 1) {
-//        Frame frame(std::make_pair(id, 0), 0, length, period);
-////        frames
-//    }
-//    for (frame_id i = 0; i < frame_num; ++i) {
-//        uint32_t frame_len = length - i * MTU;
-//    }
+    size_t frame_num = length / MTU + 1;
+    if (frame_num == 1) {
+        frames.emplace_back(new Frame(std::make_pair(id, 0), 0, length, period));
+    } else {
+        for (frame_id i = 0; i < frame_num; ++i) {
+            frames.emplace_back(
+                new Frame(std::make_pair(id, i), 0, i == frame_num - 1? length % MTU: MTU, period)
+            );
+        }
+    }
 }
 
 stream_id Stream::getId() const {
@@ -57,12 +59,12 @@ void Stream::setPcp(PRIORITY_CODE_POINT _pcp) {
     pcp = _pcp;
 }
 
-const std::vector<DeliveryGuarantee> &Stream::getDeliveryGuarantees() const {
-    return deliveryGuarantees;
+const DeliveryGuarantee *Stream::getDeliveryGuarantee() const {
+    return deliveryGuarantee.get();
 }
 
-void Stream::setDeliveryGuarantees(const std::vector<DeliveryGuarantee> &_deliveryGuarantees) {
-    deliveryGuarantees = _deliveryGuarantees;
+void Stream::setDeliveryGuarantee(std::unique_ptr<DeliveryGuarantee> &&_deliveryGuarantee) {
+    deliveryGuarantee = std::move(_deliveryGuarantee);
 }
 
 std::shared_ptr<Node> Stream::getSrc() const {
@@ -89,21 +91,22 @@ void Stream::setRoutes(const std::vector<std::shared_ptr<Route>> &_routes) {
     routes = _routes;
 }
 
-uint32_t Stream::getSelectedRouteInx() const {
-    return selectedRouteInx;
+uint32_t Stream::getChosenRoute() const {
+    return chosenRoute;
 }
 
-void Stream::setSelectedRouteInx(uint32_t _selectedRouteInx) {
-    selectedRouteInx = _selectedRouteInx;
+void Stream::setChosenRoute(uint32_t selectedRouteInx) {
+    chosenRoute = selectedRouteInx;
 }
 
 const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &Stream::getLinkFrames() const {
     return linkFrames;
 }
 
-void Stream::addFrames(int macrotick) {
-    if (macrotick == 0)
-        return;
+//void Stream::addFrames(int macrotick) {
+//    if (macrotick == 0)
+//        return;
+//
+//    Stream::frames = frames;
+//}
 
-    Stream::frames = frames;
-}

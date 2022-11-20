@@ -9,7 +9,7 @@
 #include <vector>
 #include <map>
 #include "../type.h"
-#include "../Delivery/DeliveryGuarantee.h"
+#include "DeliveryGuarantee.h"
 #include "Node.h"
 #include "Route.h"
 #include "Frame.h"
@@ -22,7 +22,7 @@ protected:
     uint64_t period = 0;
     uint32_t length = 0;
     PRIORITY_CODE_POINT pcp;
-    std::vector<DeliveryGuarantee> deliveryGuarantees;
+    std::unique_ptr<DeliveryGuarantee> deliveryGuarantee;
     /* The source node of a Flow */
     std::shared_ptr<Node> src;
 
@@ -31,7 +31,7 @@ protected:
 
     std::vector<std::shared_ptr<Route>> routes;
 
-    uint32_t selectedRouteInx = 0;
+    uint32_t chosenRoute = 0;
     std::vector<std::shared_ptr<Frame>> frames;
     std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> linkFrames;
 
@@ -54,9 +54,9 @@ public:
 
     void setPcp(PRIORITY_CODE_POINT pcp);
 
-    [[nodiscard]] const std::vector<DeliveryGuarantee> &getDeliveryGuarantees() const;
+    [[nodiscard]] const DeliveryGuarantee *getDeliveryGuarantee() const;
 
-    void setDeliveryGuarantees(const std::vector<DeliveryGuarantee> &deliveryGuarantees);
+    void setDeliveryGuarantee(std::unique_ptr<DeliveryGuarantee> &&_deliveryGuarantee);
 
     [[nodiscard]] std::shared_ptr<Node> getSrc() const;
 
@@ -70,13 +70,12 @@ public:
 
     void setRoutes(const std::vector<std::shared_ptr<Route>> &routes);
 
-    [[nodiscard]] uint32_t getSelectedRouteInx() const;
+    [[nodiscard]] uint32_t getChosenRoute() const;
 
-    void setSelectedRouteInx(uint32_t selectedRouteInx);
+    void setChosenRoute(uint32_t selectedRouteInx);
 
     [[nodiscard]] const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &getLinkFrames() const;
 
-    void addFrames(int macrotick);
 };
 
 
