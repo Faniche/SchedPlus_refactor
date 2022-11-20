@@ -27,6 +27,8 @@ private:
 public:
     Node(std::string &&_name, node_t _nodeType, uint64_t _dpr);
 
+    virtual ~Node() = default;
+
     [[nodiscard]] node_id getId() const;
 
     void setId(node_id _id);
