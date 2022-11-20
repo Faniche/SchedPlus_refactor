@@ -50,27 +50,30 @@ void Line_2sw_2es::vSetStreams(uint32_t streamsNum, std::string streamFilePath) 
     nlohmann::json jStreams;
     stream_file >> jStreams;
     for (auto & jStream : jStreams) {
-        stream_id id = jStream["id"].get<unsigned>();
-//        uint64_t offset = (*iter)["offset"].get<unsigned>();
-        uint64_t period = jStream["period"].get<unsigned>();
-        uint64_t length = jStream["length"].get<unsigned>();
-        PRIORITY_CODE_POINT pcp = jStream["pcp"].get<nlohmann::json::number_unsigned_t>();
-        std::string src = jStream["src"].get<nlohmann::json::string_t>();
-        std::string dest = jStream["dest"].get<nlohmann::json::string_t>();
+        stream_id id            = jStream[  "id"  ].get<nlohmann::json::number_unsigned_t>();
+        uint64_t period         = jStream["period"].get<nlohmann::json::number_unsigned_t>();
+        uint64_t length         = jStream["length"].get<nlohmann::json::number_unsigned_t>();
+        PRIORITY_CODE_POINT pcp = jStream[ "pcp"  ].get<nlohmann::json::number_unsigned_t>();
+        std::string src         = jStream[ "src"  ].get<nlohmann::json::string_t>();
+        std::string dest        = jStream[ "dest" ].get<nlohmann::json::string_t>();
         auto stream = std::make_shared<Stream>(
             id, period, length, static_cast<PRIORITY_CODE_POINT>(pcp), nodeNameMap[src], nodeNameMap[dest]
         );
         streams.push_back(stream);
-//        if (pcp == P6) {
-//            /* unit: ns*/
-//            DeliveryGuarantee deliveryGuarantee(DDL, stream.getPeriod());
-//            stream.addDeliveryGuarantee(deliveryGuarantee);
-//        } else if (pcp == P5) {
-//            /* Typically less than 90% of period. */
-//            /* unit: ns*/
-//            DeliveryGuarantee deliveryGuarantee(E2E, stream.getPeriod() / 10);
-//            stream.addDeliveryGuarantee(deliveryGuarantee);
-//        }
+        if (pcp == P6) {
+            /* unit: ns*/
+            stream->setDeliveryGuarantee(
+                std::make_unique<DeliveryGuarantee>(DDL, stream->getPeriod())
+            );
+        } else if (pcp == P5) {
+            /* Typically less than 90% of period. */
+            /* unit: ns*/
+            stream->setDeliveryGuarantee(
+                std::make_unique<DeliveryGuarantee>(E2E, stream->getPeriod() / 10)
+            );
+        } else if (pcp == P5) {
+
+        }
 //        Util::calAllRoutes(nodeIdMap, flow, graph, links);
 //        flows.push_back(flow);
 //        oss.str("");
