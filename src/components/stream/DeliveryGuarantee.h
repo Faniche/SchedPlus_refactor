@@ -24,6 +24,8 @@ private:
     uint64_t lover_obj = 0;
     uint64_t upper_obj = 0;
 public:
+    DeliveryGuarantee();
+
     DeliveryGuarantee(DELIVERY_GUARANTEE type, uint64_t lowerVal);
 
     DeliveryGuarantee(DELIVERY_GUARANTEE type, uint64_t lowerVal, uint64_t upperVal);

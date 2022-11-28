@@ -5,6 +5,10 @@
 #include <iostream>
 #include "DeliveryGuarantee.h"
 
+DeliveryGuarantee::DeliveryGuarantee() {
+    type = BE;
+}
+
 DeliveryGuarantee::DeliveryGuarantee(DELIVERY_GUARANTEE type, uint64_t lowerVal) : type(type), lower_val(lowerVal) {}
 
 DeliveryGuarantee::DeliveryGuarantee(DELIVERY_GUARANTEE type, uint64_t lowerVal, uint64_t upperVal) : type(type),
