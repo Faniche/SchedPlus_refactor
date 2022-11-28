@@ -23,6 +23,10 @@ double Port::getTransmitSpd() const {
     return transmitSpd;
 }
 
+void Port::setTransmitSpd(double _transmitSpd) {
+    Port::transmitSpd = _transmitSpd;
+}
+
 const std::vector<std::shared_ptr<GateControlEntry>> &Port::getGateControlList() const {
     return gateControlList;
 }

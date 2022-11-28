@@ -43,6 +43,8 @@ public:
 
     [[nodiscard]] double getTransmitSpd() const;
 
+    void setTransmitSpd(double transmitSpd);
+
     [[nodiscard]] const std::vector<std::shared_ptr<GateControlEntry>> &getGateControlList() const;
 
     void addGateControlEntry(std::shared_ptr<GateControlEntry> &&gateControlEntry);
