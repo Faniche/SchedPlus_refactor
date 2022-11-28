@@ -19,3 +19,7 @@ uint64_t Route::getE2E() const {
 void Route::setE2E(uint64_t _e2e) {
     e2e = _e2e;
 }
+
+void Route::addLink(const std::shared_ptr <DirectedLink>& link) {
+    links.push_back(link);
+}

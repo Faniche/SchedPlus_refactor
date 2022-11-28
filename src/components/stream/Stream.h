@@ -21,7 +21,7 @@ protected:
     stream_id id;
     uint64_t period = 0;
     uint32_t length = 0;
-    PRIORITY_CODE_POINT pcp;
+    pcp_t pcp;
     std::unique_ptr<DeliveryGuarantee> deliveryGuarantee;
     /* The source node of a Flow */
     std::shared_ptr<Node> src;
@@ -36,7 +36,7 @@ protected:
     std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> linkFrames;
 
 public:
-    Stream(stream_id id, uint64_t period, uint32_t length, PRIORITY_CODE_POINT pcp, std::shared_ptr<Node> &src, std::shared_ptr<Node> &dest);
+    Stream(stream_id id, uint64_t period, uint32_t length, pcp_t pcp, std::shared_ptr<Node> &src, std::shared_ptr<Node> &dest);
 
     [[nodiscard]] stream_id getId() const;
 
@@ -50,9 +50,9 @@ public:
 
     void setLength(uint32_t length);
 
-    [[nodiscard]] PRIORITY_CODE_POINT getPcp() const;
+    [[nodiscard]] pcp_t getPcp() const;
 
-    void setPcp(PRIORITY_CODE_POINT pcp);
+    void setPcp(pcp_t pcp);
 
     [[nodiscard]] const DeliveryGuarantee *getDeliveryGuarantee() const;
 
@@ -68,7 +68,7 @@ public:
 
     [[nodiscard]] const std::vector<std::shared_ptr<Route>> &getRoutes() const;
 
-    void setRoutes(const std::vector<std::shared_ptr<Route>> &routes);
+    void setRoutes(std::vector<std::shared_ptr<Route>> &&_routes);
 
     [[nodiscard]] uint32_t getChosenRoute() const;
 
