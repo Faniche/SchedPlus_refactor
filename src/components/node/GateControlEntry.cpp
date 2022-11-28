@@ -13,7 +13,7 @@ const std::vector<bool> &GateControlEntry::getGateStatesValue() const {
     return gateStatesValue;
 }
 
-void GateControlEntry::setGateStatesValue(uint8_t idx, GATE_EVENT gateState) {
+void GateControlEntry::setGateStatesValue(uint8_t idx, gate_event_t gateState) {
     gateStatesValue[idx] = gateState;
 }
 

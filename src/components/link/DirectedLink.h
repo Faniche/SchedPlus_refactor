@@ -17,28 +17,24 @@ private:
     std::shared_ptr<Node> destNode;
     std::shared_ptr<Port> srcPort;
     std::shared_ptr<Port> destPort;
-    uint64_t speed = 1000000000;
     /* the length of link, meter */
     uint32_t len = 20;
     /* the signal propagation speed of the media, val: nanosecond per meter */
     uint32_t propSpeed = 5;
-    uint32_t macrotick;
+
 public:
     DirectedLink();
 
     DirectedLink(std::shared_ptr<Node> _srcNode,
                  std::shared_ptr<Node> _destNode,
                  std::shared_ptr<Port> _srcPort,
-                 std::shared_ptr<Port> _destPort,
-                 uint32_t _macrotick);
+                 std::shared_ptr<Port> _destPort);
 
     DirectedLink(std::shared_ptr<Node> _srcNode,
                  std::shared_ptr<Node> _destNode,
                  std::shared_ptr<Port> _srcPort,
                  std::shared_ptr<Port> _destPort,
-                 uint32_t _len,
-                 uint32_t _propSpeed,
-                 uint32_t _macrotick);
+                 uint32_t _len);
 
     [[nodiscard]] link_id getId() const;
 
@@ -60,8 +56,6 @@ public:
 
     void mergeGCL();
 
-    [[nodiscard]] uint64_t getSpeed() const;
-
     [[nodiscard]] uint32_t getLen() const;
 
     void setLen(uint32_t len);
@@ -70,9 +64,6 @@ public:
 
     void setPropSpeed(uint32_t _propSpeed);
 
-    [[nodiscard]] uint32_t getMacrotick() const;
-
-    void setMacrotick(uint32_t macrotick);
 };
 
 

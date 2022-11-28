@@ -7,7 +7,7 @@
 Stream::Stream(stream_id id,
                uint64_t period,
                uint32_t length,
-               PRIORITY_CODE_POINT pcp,
+               pcp_t pcp,
                std::shared_ptr<Node> &src,
                std::shared_ptr<Node> &dest) : id(id),
                                               period(period),
@@ -51,11 +51,11 @@ void Stream::setLength(uint32_t _length) {
     length = _length;
 }
 
-PRIORITY_CODE_POINT Stream::getPcp() const {
+pcp_t Stream::getPcp() const {
     return pcp;
 }
 
-void Stream::setPcp(PRIORITY_CODE_POINT _pcp) {
+void Stream::setPcp(pcp_t _pcp) {
     pcp = _pcp;
 }
 
@@ -87,7 +87,7 @@ const std::vector<std::shared_ptr<Route>> &Stream::getRoutes() const {
     return routes;
 }
 
-void Stream::setRoutes(const std::vector<std::shared_ptr<Route>> &_routes) {
+void Stream::setRoutes(std::vector<std::shared_ptr<Route>> &&_routes) {
     routes = _routes;
 }
 
@@ -102,11 +102,3 @@ void Stream::setChosenRoute(uint32_t selectedRouteInx) {
 const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &Stream::getLinkFrames() const {
     return linkFrames;
 }
-
-//void Stream::addFrames(int macrotick) {
-//    if (macrotick == 0)
-//        return;
-//
-//    Stream::frames = frames;
-//}
-

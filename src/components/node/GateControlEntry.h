@@ -11,7 +11,7 @@
 
 class GateControlEntry {
 private:
-    std::vector<GATE_EVENT> gateStatesValue;
+    std::vector<gate_event_t> gateStatesValue;
     uint64_t startTime;
     uint64_t timeIntervalValue;
 public:
@@ -19,7 +19,7 @@ public:
 
     [[nodiscard]] const std::vector<bool> &getGateStatesValue() const;
 
-    void setGateStatesValue(uint8_t idx, GATE_EVENT gateState);
+    void setGateStatesValue(uint8_t idx, gate_event_t gateState);
 
     [[nodiscard]] uint64_t getStartTime() const;
 

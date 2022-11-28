@@ -13,12 +13,10 @@ DirectedLink::DirectedLink() {
 DirectedLink::DirectedLink(std::shared_ptr<Node> _srcNode,
                            std::shared_ptr<Node> _destNode,
                            std::shared_ptr<Port> _srcPort,
-                           std::shared_ptr<Port> _destPort,
-                           uint32_t _macrotick) : srcNode(std::move(_srcNode)),
+                           std::shared_ptr<Port> _destPort) : srcNode(std::move(_srcNode)),
                                                   destNode(std::move(_destNode)),
                                                   srcPort(std::move(_srcPort)),
-                                                  destPort(std::move(_destPort)),
-                                                  macrotick(_macrotick) {
+                                                  destPort(std::move(_destPort)) {
     id = g_link_id++;
 }
 
@@ -26,15 +24,11 @@ DirectedLink::DirectedLink(std::shared_ptr<Node> _srcNode,
                            std::shared_ptr<Node> _destNode,
                            std::shared_ptr<Port> _srcPort,
                            std::shared_ptr<Port> _destPort,
-                           uint32_t _len,
-                           uint32_t _propSpeed,
-                           uint32_t _macrotick) : srcNode(std::move(_srcNode)),
+                           uint32_t _len) : srcNode(std::move(_srcNode)),
                                                   destNode(std::move(_destNode)),
                                                   srcPort(std::move(_srcPort)),
                                                   destPort(std::move(_destPort)),
-                                                  len(_len),
-                                                  propSpeed(_propSpeed),
-                                                  macrotick(_macrotick) {
+                                                  len(_len) {
     id = g_link_id++;
 }
 
@@ -78,10 +72,6 @@ void DirectedLink::mergeGCL() {
     srcPort->mergeGCL();
 }
 
-uint64_t DirectedLink::getSpeed() const {
-    return speed;
-}
-
 uint32_t DirectedLink::getLen() const {
     return len;
 }
@@ -97,12 +87,3 @@ uint32_t DirectedLink::getPropSpeed() const {
 void DirectedLink::setPropSpeed(uint32_t _propSpeed) {
     propSpeed = _propSpeed;
 }
-
-uint32_t DirectedLink::getMacrotick() const {
-    return macrotick;
-}
-
-void DirectedLink::setMacrotick(uint32_t _macrotick) {
-    macrotick = _macrotick;
-}
-

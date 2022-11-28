@@ -24,6 +24,8 @@ public:
     [[nodiscard]] uint64_t getE2E() const;
 
     void setE2E(uint64_t _e2e);
+
+    void addLink(const std::shared_ptr<DirectedLink>& link);
 };
 
 

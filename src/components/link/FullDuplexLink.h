@@ -11,15 +11,15 @@
 
 class FullDuplexLink {
 private:
-    std::pair<std::shared_ptr<DirectedLink>, std::shared_ptr<DirectedLink>> links;
+    std::vector<std::shared_ptr<DirectedLink>> links;
 public:
     FullDuplexLink(std::shared_ptr<Node> &&_nodeA,
                    std::shared_ptr<Node> &&_nodeB,
                    std::shared_ptr<Port> &&_portA,
                    std::shared_ptr<Port> &&_portB,
-                   uint32_t _macrotick);
+                   eth_speed_t speed);
 
-    [[nodiscard]] const std::pair<std::shared_ptr<DirectedLink>, std::shared_ptr<DirectedLink>> &getLinks() const;
+    [[nodiscard]] const std::vector<std::shared_ptr<DirectedLink>> &getLinks() const;
 };
 
 
