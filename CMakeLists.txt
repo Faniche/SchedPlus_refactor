@@ -19,11 +19,12 @@ add_executable(SchedPlus main.cpp
         src/components/link/DirectedLink.cpp src/components/link/DirectedLink.h
         src/components/node/GateControlEntry.cpp src/components/node/GateControlEntry.h
         src/components/link/FullDuplexLink.cpp src/components/link/FullDuplexLink.h
-        src/topology/Input.cpp                  src/topology/Input.h
-        src/topology/Line_2sw_2es.cpp           src/topology/Line_2sw_2es.h
-        src/solution/SmtSolver.cpp              src/solution/SmtSolver.h
-        src/solution/Solver.cpp                 src/solution/Solver.h
-        src/solution/GASolver.cpp               src/solution/GASolver.h)
+        src/topology/Input.cpp src/topology/Input.h
+        src/topology/Line_2sw_2es.cpp src/topology/Line_2sw_2es.h
+        src/solution/SmtSolver.cpp src/solution/SmtSolver.h
+        src/solution/Solver.cpp src/solution/Solver.h
+        src/solution/GASolver.cpp src/solution/GASolver.h
+        src/components/link/Graph.cpp src/components/link/Graph.h)
 
 target_link_libraries(SchedPlus PUBLIC
         "${PROJECT_SOURCE_DIR}/lib/spdlog/build/libspdlog.a"
@@ -33,4 +34,6 @@ target_link_libraries(SchedPlus PUBLIC
 
 target_include_directories(SchedPlus PUBLIC lib/spdlog/include)
 
-add_executable(getmt getMt.cpp)
+add_executable(getmt test/getMt.cpp)
+
+add_executable(DpWithNote test/DpWithNote.cpp)
