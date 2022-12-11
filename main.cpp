@@ -5,18 +5,16 @@
 #include "src/components/node/Node.h"
 #include "src/components/link/DirectedLink.h"
 #include "src/components/stream/Stream.h"
-#include "src/topology/Input.h"
 #include "src/topology/Line_2sw_2es.h"
 #include "src/solution/Solver.h"
-#include "src/solution/GASolver.h"
+#define OPENGA_EXTERN_LOCAL_VARS
+#include "src/solution/GeneticAlgorithm/MoGaSolver.h"
 
 namespace spd = spdlog;
 
 int g_port_counter = 0;
 
 int g_node_id = 0;
-
-int g_link_id = 0;
 
 int main(int argc, char **argv) {
     CLI::App app{"Schedplus: based on GA to schedule time sensitive streams."};
@@ -49,13 +47,9 @@ int main(int argc, char **argv) {
         spd::set_pattern("[%H:%M:%S] [%^%l%$] %s:%# %v");
         auto input = std::make_shared<Line_2sw_2es>();
         input->setNodesAndLinks();
-        input->setStreams(option_flow_number, streamFilePath);
-//        auto es0 = std::dynamic_pointer_cast<EndSystem>(input->nodes[0]);
-//        auto sw0 = std::dynamic_pointer_cast<Switch>(input->nodes[2]);
-        auto gaSolver = std::make_unique<GASolver>(input);
-        gaSolver.get()->solve();
-
-
+        input->setStreams(streamFilePath);
+        auto gaSolver = std::make_unique<MoGaSolver>(input, flag_debug, option_generation_number);
+        gaSolver->solve();
 
 
     } catch (const spdlog::spdlog_ex &ex) {
@@ -65,6 +59,5 @@ int main(int argc, char **argv) {
         return 1;
     }
     spdlog::shutdown();
-    std::cout << "Hello, World!" << std::endl;
     return 0;
 }
