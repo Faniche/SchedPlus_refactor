@@ -32,6 +32,10 @@ int getMt(const std::vector<int>& arr){
 }
 
 int main(int argc, char **argv) {
+    uint64_t a = 10;
+    uint64_t b = 8;
+    int c = static_cast<int>(b - a);
+    std::cout << "c = " << c << std::endl;
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::mt19937 rand_num(seed);
     std::uniform_int_distribution<int> dist(80, 1542);

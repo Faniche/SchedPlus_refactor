@@ -21,9 +21,12 @@ add_executable(SchedPlus main.cpp
         src/components/link/FullDuplexLink.cpp src/components/link/FullDuplexLink.h
         src/topology/Input.cpp src/topology/Input.h
         src/topology/Line_2sw_2es.cpp src/topology/Line_2sw_2es.h
-        src/solution/SmtSolver.cpp src/solution/SmtSolver.h
         src/solution/Solver.cpp src/solution/Solver.h
-        src/solution/GASolver.cpp src/solution/GASolver.h
+        src/solution/SmtSolver.cpp src/solution/SmtSolver.h
+        lib/openGA/openGA.hpp
+        src/solution/GeneticAlgorithm/GaSolution.h
+        src/solution/GeneticAlgorithm/GaMiddleCost.h
+        src/solution/GeneticAlgorithm/MoGaSolver.cpp src/solution/GeneticAlgorithm/MoGaSolver.h
         src/components/link/Graph.cpp src/components/link/Graph.h)
 
 target_link_libraries(SchedPlus PUBLIC
@@ -37,3 +40,5 @@ target_include_directories(SchedPlus PUBLIC lib/spdlog/include)
 add_executable(getmt test/getMt.cpp)
 
 add_executable(DpWithNote test/DpWithNote.cpp)
+
+add_executable(MoGaSolverTest test/MoGaSolverTest.cpp)
