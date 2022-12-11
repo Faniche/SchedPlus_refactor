@@ -17,7 +17,7 @@ DirectedLink::DirectedLink(std::shared_ptr<Node> _srcNode,
                                                   destNode(std::move(_destNode)),
                                                   srcPort(std::move(_srcPort)),
                                                   destPort(std::move(_destPort)) {
-    id = g_link_id++;
+    id = std::make_pair(srcNode->getId(), destNode->getId());
 }
 
 DirectedLink::DirectedLink(std::shared_ptr<Node> _srcNode,
@@ -29,14 +29,14 @@ DirectedLink::DirectedLink(std::shared_ptr<Node> _srcNode,
                                                   srcPort(std::move(_srcPort)),
                                                   destPort(std::move(_destPort)),
                                                   len(_len) {
-    id = g_link_id++;
+    id = std::make_pair(srcNode->getId(), destNode->getId());
 }
 
-link_id DirectedLink::getId() const {
+link_id_t DirectedLink::getId() const {
     return id;
 }
 
-void DirectedLink::setId(link_id _id) {
+void DirectedLink::setId(link_id_t _id) {
     id = _id;
 }
 

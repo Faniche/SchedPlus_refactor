@@ -33,21 +33,24 @@ constexpr uint8_t IFG_TIME = 96;
  **/
 constexpr uint8_t HEADER_LEN = 22 + 8;
 
-typedef uint32_t frame_id;
-typedef uint32_t stream_id;
-typedef uint32_t node_id;
-typedef uint32_t link_id;
-typedef uint32_t port_id;
+typedef int32_t frame_id_t;
+typedef int32_t stream_id_t;
+typedef int32_t node_id_t;
+typedef std::pair<node_id_t, node_id_t> link_id_t;
+typedef int32_t port_id_t;
+typedef int64_t sched_time_t;
+typedef int64_t route_t;
+typedef size_t hop_t;
 
 typedef bool gate_event_t;
 constexpr gate_event_t GATE_CLOSE = false;
 constexpr gate_event_t GATE_OPEN =  true;
 
-constexpr uint32_t MTU = 1500;
+constexpr int32_t MTU = 1500;
 
-typedef uint32_t eth_speed_t;
-constexpr eth_speed_t   _10_ETHERNET = 100000000;
-constexpr eth_speed_t  _100_ETHERNET = 1000000000;
+typedef int64_t eth_speed_t;
+constexpr eth_speed_t   _10_ETHERNET = 10000000;
+constexpr eth_speed_t  _100_ETHERNET = 100000000;
 constexpr eth_speed_t _1000_ETHERNET = 1000000000;
 
 

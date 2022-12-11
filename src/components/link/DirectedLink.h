@@ -8,11 +8,9 @@
 #include "../node/Node.h"
 #include "../node/Port.h"
 
-extern int g_link_id;
-
 class DirectedLink {
 private:
-    link_id id;
+    link_id_t id;
     std::shared_ptr<Node> srcNode;
     std::shared_ptr<Node> destNode;
     std::shared_ptr<Port> srcPort;
@@ -36,9 +34,9 @@ public:
                  std::shared_ptr<Port> _destPort,
                  uint32_t _len);
 
-    [[nodiscard]] link_id getId() const;
+    [[nodiscard]] link_id_t getId() const;
 
-    void setId(link_id _id);
+    void setId(link_id_t _id);
 
     [[nodiscard]] std::shared_ptr<Node> getSrcNode() const;
 

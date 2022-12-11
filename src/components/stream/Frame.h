@@ -13,24 +13,27 @@
 
 class Frame {
 private:
-    std::pair<stream_id, frame_id> id;
-    uint64_t offset;
+    std::pair<stream_id_t, frame_id_t> id;
+    sched_time_t offset;
     uint32_t length;
-    uint32_t period;
+    sched_time_t period;
 public:
-    Frame(std::pair<stream_id, frame_id> _id, uint64_t offset, uint32_t length, uint32_t period);
+    Frame(std::pair<stream_id_t, frame_id_t> _id,
+          sched_time_t offset,
+          uint32_t length,
+          sched_time_t period);
 
-    [[nodiscard]] uint64_t getOffset() const;
+    [[nodiscard]] sched_time_t getOffset() const;
 
-    void setOffset(uint64_t offset);
+    void setOffset(sched_time_t offset);
 
     [[nodiscard]] uint32_t getLength1() const;
 
     void setLength1(uint32_t length);
 
-    [[nodiscard]] uint32_t getPeriod1() const;
+    [[nodiscard]] sched_time_t getPeriod1() const;
 
-    void setPeriod1(uint32_t period);
+    void setPeriod1(sched_time_t period);
 };
 
 

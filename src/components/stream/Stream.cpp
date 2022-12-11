@@ -4,8 +4,8 @@
 
 #include "Stream.h"
 
-Stream::Stream(stream_id id,
-               uint64_t period,
+Stream::Stream(stream_id_t id,
+               sched_time_t period,
                uint32_t length,
                pcp_t pcp,
                std::shared_ptr<Node> &src,
@@ -19,7 +19,7 @@ Stream::Stream(stream_id id,
     if (frame_num == 1) {
         frames.emplace_back(new Frame(std::make_pair(id, 0), 0, length, period));
     } else {
-        for (frame_id i = 0; i < frame_num; ++i) {
+        for (frame_id_t i = 0; i < frame_num; ++i) {
             frames.emplace_back(
                 new Frame(std::make_pair(id, i), 0, i == frame_num - 1? length % MTU: MTU, period)
             );
@@ -27,19 +27,19 @@ Stream::Stream(stream_id id,
     }
 }
 
-stream_id Stream::getId() const {
+stream_id_t Stream::getId() const {
     return id;
 }
 
-void Stream::setId(stream_id _id) {
+void Stream::setId(stream_id_t _id) {
     id = _id;
 }
 
-uint64_t Stream::getPeriod() const {
+sched_time_t Stream::getPeriod() const {
     return period;
 }
 
-void Stream::setPeriod(uint64_t _period) {
+void Stream::setPeriod(sched_time_t _period) {
     period = _period;
 }
 

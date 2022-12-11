@@ -11,7 +11,7 @@ Port::Port(uint64_t _speed) {
     id = g_port_counter++;
 }
 
-port_id Port::getId() const {
+port_id_t Port::getId() const {
     return id;
 }
 

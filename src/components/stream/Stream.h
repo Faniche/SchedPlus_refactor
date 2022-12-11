@@ -18,8 +18,8 @@
 
 class Stream {
 protected:
-    stream_id id;
-    uint64_t period = 0;
+    stream_id_t id;
+    sched_time_t period = 0;
     uint32_t length = 0;
     pcp_t pcp;
     std::unique_ptr<DeliveryGuarantee> deliveryGuarantee;
@@ -36,15 +36,15 @@ protected:
     std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> linkFrames;
 
 public:
-    Stream(stream_id id, uint64_t period, uint32_t length, pcp_t pcp, std::shared_ptr<Node> &src, std::shared_ptr<Node> &dest);
+    Stream(stream_id_t id, sched_time_t period, uint32_t length, pcp_t pcp, std::shared_ptr<Node> &src, std::shared_ptr<Node> &dest);
 
-    [[nodiscard]] stream_id getId() const;
+    [[nodiscard]] stream_id_t getId() const;
 
-    void setId(stream_id _id);
+    void setId(stream_id_t _id);
 
-    [[nodiscard]] uint64_t getPeriod() const;
+    [[nodiscard]] sched_time_t getPeriod() const;
 
-    void setPeriod(uint64_t period);
+    void setPeriod(sched_time_t period);
 
     [[nodiscard]] uint32_t getLength() const;
 

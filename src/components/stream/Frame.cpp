@@ -4,16 +4,19 @@
 
 #include "Frame.h"
 
-Frame::Frame(std::pair<stream_id, frame_id> _id, uint64_t offset, uint32_t length, uint32_t period) : id(std::move(_id)),
-                                                                                                            offset(offset),
-                                                                                                            length(length),
-                                                                                                            period(period) {}
+Frame::Frame(std::pair<stream_id_t, frame_id_t> _id,
+             sched_time_t offset,
+             uint32_t length,
+             sched_time_t period) : id(std::move(_id)),
+                                    offset(offset),
+                                    length(length),
+                                    period(period) {}
 
-uint64_t Frame::getOffset() const {
+sched_time_t Frame::getOffset() const {
     return offset;
 }
 
-void Frame::setOffset(uint64_t offset) {
+void Frame::setOffset(sched_time_t offset) {
     Frame::offset = offset;
 }
 
@@ -25,11 +28,11 @@ void Frame::setLength1(uint32_t length) {
     Frame::length = length;
 }
 
-uint32_t Frame::getPeriod1() const {
+sched_time_t Frame::getPeriod1() const {
     return period;
 }
 
-void Frame::setPeriod1(uint32_t period) {
+void Frame::setPeriod1(sched_time_t period) {
     Frame::period = period;
 }
 

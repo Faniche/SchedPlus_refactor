@@ -18,20 +18,20 @@ enum node_t {
 
 class Node {
 private:
-    node_id id;
+    node_id_t id;
     std::string name;
     node_t nodeType;
     /* the process delay of node: ns*/
-    uint64_t dpr{};
+    sched_time_t dpr;
     virtual const std::string& vToString() = 0;
 public:
-    Node(std::string &&_name, node_t _nodeType, uint64_t _dpr);
+    Node(std::string &&_name, node_t _nodeType, sched_time_t _dpr);
 
     virtual ~Node() = default;
 
-    [[nodiscard]] node_id getId() const;
+    [[nodiscard]] node_id_t getId() const;
 
-    void setId(node_id _id);
+    void setId(node_id_t _id);
 
     [[nodiscard]] const std::string &getName() const;
 
@@ -41,9 +41,9 @@ public:
 
     const std::string & toString();
 
-    [[nodiscard]] uint64_t getDpr() const;
+    [[nodiscard]] sched_time_t getDpr() const;
 
-    void setDpr(uint64_t _dpr);
+    void setDpr(sched_time_t _dpr);
 };
 
 

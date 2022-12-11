@@ -16,7 +16,7 @@ extern int g_port_counter;
 
 class Port {
 private:
-    port_id id;
+    port_id_t id;
 
     /* speed of port, default: 1Gbps */
     uint64_t speed = 1000000000;
@@ -37,7 +37,7 @@ private:
 public:
     explicit Port(uint64_t _speed = 1000000000);
 
-    [[nodiscard]] port_id getId() const;
+    [[nodiscard]] port_id_t getId() const;
 
     [[nodiscard]] uint64_t getSpeed() const;
 
