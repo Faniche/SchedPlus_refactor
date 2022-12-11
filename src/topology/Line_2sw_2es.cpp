@@ -36,8 +36,8 @@ void Line_2sw_2es::vSetNodesAndLinks() {
     std::vector<FullDuplexLink> fdLlinks{fdLink0, fdLink1, fdLink2};
     for (const auto& fdLink: fdLlinks) {
         for (const auto& dirLink: fdLink.getLinks()) {
-            auto key = std::make_pair(dirLink->getSrcNode()->getId(), dirLink->getDestNode()->getId());
-            links[key] = dirLink;
+            link_id_t linkId = std::make_pair(dirLink->getSrcNode()->getId(), dirLink->getDestNode()->getId());
+            links[linkId] = dirLink;
         }
     }
 
@@ -47,60 +47,7 @@ void Line_2sw_2es::vSetNodesAndLinks() {
     }
 }
 
-void Line_2sw_2es::vSetStreams(uint32_t streamsNum, std::string streamFilePath) {
-    std::ifstream stream_file(streamFilePath);
-    nlohmann::json jStreams;
-    stream_file >> jStreams;
-    Graph graph(nodes.size());
-    graph.initGraph(nodeIdMap, links);
-    for (auto & jStream : jStreams) {
-        stream_id id            = jStream[  "id"  ].get<nlohmann::json::number_unsigned_t>();
-        uint64_t period         = jStream["period"].get<nlohmann::json::number_unsigned_t>();
-        uint64_t length         = jStream["length"].get<nlohmann::json::number_unsigned_t>();
-        pcp_t pcp = jStream[ "pcp"  ].get<nlohmann::json::number_unsigned_t>();
-        std::string src         = jStream[ "src"  ].get<nlohmann::json::string_t>();
-        std::string dest        = jStream[ "dest" ].get<nlohmann::json::string_t>();
-        auto stream = std::make_shared<Stream>(
-                id, period, length, static_cast<pcp_t>(pcp), nodeNameMap[src], nodeNameMap[dest]
-        );
-        switch (pcp) {
-            case P7: {
-                // TODO
-            }
-            case P6: {
-                /* unit: ns*/
-                stream->setDeliveryGuarantee(
-                        std::make_unique<DeliveryGuarantee>(DDL, stream->getPeriod())
-                );
-                break;
-            }
-            case P5: {
-                /* Typically less than 90% of period. */
-                /* unit: ns*/
-                stream->setDeliveryGuarantee(
-                        std::make_unique<DeliveryGuarantee>(E2E, stream->getPeriod() / 10)
-                );
-                break;
-            }
-            case P4: {
-                // TODO
-            }
-            case P3: {
-                // TODO
-            }
-            case P2: {
-                // TODO
-            }
-            case P1: {
-                // TODO
-            }
-            default: {
-                stream->setDeliveryGuarantee(
-                        std::make_unique<DeliveryGuarantee>()
-                );
-            }
-        }
-        calAllRoutes(stream, graph);
-        streams.push_back(stream);
-    }
+void Line_2sw_2es::vSetStreams(uint32_t streamsNum) {
+    // TODO
+    // set random stream
 }
