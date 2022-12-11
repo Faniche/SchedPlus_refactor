@@ -8,6 +8,8 @@
 
 #include <vector>
 #include <memory>
+#include <utility>
+#include <fstream>
 #include "../components/node/Node.h"
 #include "../components/link/DirectedLink.h"
 #include "../components/stream/Stream.h"
@@ -18,22 +20,26 @@ class Input {
 private:
     virtual void vSetNodesAndLinks() = 0;
 
-    virtual void vSetStreams(uint32_t streamsNum, std::string streamFilePath) = 0;
+    virtual void vSetStreams(uint32_t streamsNu) = 0;
 
 public:
     std::vector<std::shared_ptr<Node>> nodes;
     std::vector<std::shared_ptr<Node>> esList;
     std::vector<std::shared_ptr<Node>> swList;
-    std::map<std::pair<node_id, node_id>, std::shared_ptr<DirectedLink>> links;
+    std::map<link_id_t , std::shared_ptr<DirectedLink>> links;
     std::vector<std::shared_ptr<Stream>> streams;
-    std::map<node_id, std::shared_ptr<Node>> nodeIdMap;
+    std::map<stream_id_t, int> streamsId;
+    std::map<pcp_t , std::vector<stream_id_t>> streamsGroupByPcp;
+    std::map<node_id_t, std::shared_ptr<Node>> nodeIdMap;
     std::map<std::string, std::shared_ptr<Node>> nodeNameMap;
 
     void setNodesAndLinks();
 
-    void setStreams(uint32_t streamsNum, std::string streamFilePath);
+    void setStreams(uint32_t streamsNum);
 
-    void calAllRoutes(std::shared_ptr<Stream> &stream, Graph &graph);
+    void setStreams(const std::string& streamFilePath);
+
+    void getAllRoutes(std::shared_ptr<Stream> &stream, Graph &graph);
 };
 
 
