@@ -10,7 +10,7 @@
 
 class Solver {
 private:
-    std::unique_ptr<Input> input;
+//    std::unique_ptr<Input> input;
     virtual void vSolve() = 0;
 public:
     void solve();
