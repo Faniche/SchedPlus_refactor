@@ -41,4 +41,25 @@ add_executable(getmt test/getMt.cpp)
 
 add_executable(DpWithNote test/DpWithNote.cpp)
 
-add_executable(MoGaSolverTest test/MoGaSolverTest.cpp)
+add_executable(MoGaSolverTest
+        src/type.h
+        src/components/stream/Stream.cpp src/components/stream/Stream.h
+        src/components/stream/DeliveryGuarantee.cpp src/components/stream/DeliveryGuarantee.h
+        src/components/node/Node.cpp src/components/node/Node.h
+        src/components/node/Switch.cpp src/components/node/Switch.h
+        src/components/node/EndSystem.cpp src/components/node/EndSystem.h
+        src/components/node/Port.cpp src/components/node/Port.h
+        src/components/stream/Frame.cpp src/components/stream/Frame.h
+        src/components/link/Route.cpp src/components/link/Route.h
+        src/components/link/DirectedLink.cpp src/components/link/DirectedLink.h
+        src/components/node/GateControlEntry.cpp src/components/node/GateControlEntry.h
+        src/components/link/FullDuplexLink.cpp src/components/link/FullDuplexLink.h
+        src/topology/Input.cpp src/topology/Input.h
+        src/topology/Line_2sw_2es.cpp src/topology/Line_2sw_2es.h
+        src/solution/Solver.cpp src/solution/Solver.h
+        lib/openGA/openGA.hpp
+        src/solution/GeneticAlgorithm/GaSolution.h
+        src/solution/GeneticAlgorithm/GaMiddleCost.h
+        src/solution/GeneticAlgorithm/MoGaSolver.cpp src/solution/GeneticAlgorithm/MoGaSolver.h
+        src/components/link/Graph.cpp src/components/link/Graph.h
+        test/MoGaSolverTest.cpp)
