@@ -68,7 +68,8 @@ void Graph::getAllRoutes(node_id_t s, node_id_t d, std::vector<std::vector<node_
  * @param links     : link vector
  **/
 void Graph::initGraph(const std::map<node_id_t, std::shared_ptr<Node>>& nodeIdMap,
-                      const std::map<std::pair<node_id_t, node_id_t>, std::shared_ptr<DirectedLink>>& links) {
+                      const std::map<std::pair<node_id_t, node_id_t>,
+                      std::shared_ptr<DirectedLink>>& links) {
     for (auto &[key, _]: links) {
         addEdge(key.first, key.second);
     }

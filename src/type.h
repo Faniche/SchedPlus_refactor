@@ -41,6 +41,8 @@ typedef int32_t port_id_t;
 typedef int64_t sched_time_t;
 typedef int64_t route_t;
 typedef size_t hop_t;
+typedef int64_t group_id_t;
+constexpr std::pair<hop_t, link_id_t> null_link_id = std::make_pair(0, std::make_pair(INT32_MAX, INT32_MAX));
 
 typedef bool gate_event_t;
 constexpr gate_event_t GATE_CLOSE = false;
@@ -49,9 +51,9 @@ constexpr gate_event_t GATE_OPEN =  true;
 constexpr int32_t MTU = 1500;
 
 typedef int64_t eth_speed_t;
-constexpr eth_speed_t   _10_ETHERNET = 10000000;
-constexpr eth_speed_t  _100_ETHERNET = 100000000;
-constexpr eth_speed_t _1000_ETHERNET = 1000000000;
+constexpr eth_speed_t   SCHEDPLUS_10_ETHERNET = 10000000;
+constexpr eth_speed_t  SCHEDPLUS_100_ETHERNET = 100000000;
+constexpr eth_speed_t SCHEDPLUS_1000_ETHERNET = 1000000000;
 
 
 

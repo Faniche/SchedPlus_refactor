@@ -11,11 +11,11 @@ FullDuplexLink::FullDuplexLink(std::shared_ptr<Node> &&_nodeA,
                                eth_speed_t speed) {
     double portTransmitSpd = 0;
     switch (speed) {
-        case _10_ETHERNET: {
+        case SCHEDPLUS_10_ETHERNET: {
             portTransmitSpd = 800;
             break;
         }
-        case _100_ETHERNET: {
+        case SCHEDPLUS_100_ETHERNET: {
             portTransmitSpd = 80;
             break;
         }
