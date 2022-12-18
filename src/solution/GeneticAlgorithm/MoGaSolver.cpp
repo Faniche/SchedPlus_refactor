@@ -7,7 +7,10 @@
 
 MoGaSolver::MoGaSolver(std::shared_ptr<Input> _input,
                        bool _debug = false,
-                       int _generations = 100) : input(std::move(_input)), debug(_debug), generations(_generations) {
+                       int _generations = 100) :
+        input(std::move(_input)),
+        debug(_debug),
+        generations(_generations) {
     std::sort(input->streams.begin(), input->streams.end(),
               [](const std::shared_ptr<Stream> &a, const std::shared_ptr<Stream> &b) {
                   return a->getPeriod() < b->getPeriod() || a->getLength() < b->getLength() ||
@@ -15,6 +18,12 @@ MoGaSolver::MoGaSolver(std::shared_ptr<Input> _input,
               });
     for (int i = 0; i < input->streams.size(); ++i)
         input->streamsId[input->streams[i]->getId()] = i;
+    for (const auto &stream: input->streams) {
+        if (hyperPeriod != 0)
+            hyperPeriod = std::lcm(hyperPeriod, stream->getPeriod());
+        else
+            hyperPeriod = stream->getPeriod();
+    }
 }
 
 void MoGaSolver::vSolve() {
@@ -23,7 +32,7 @@ void MoGaSolver::vSolve() {
     ga_obj.multi_threading = !debug;
     ga_obj.dynamic_threading = !debug;
     ga_obj.verbose = debug;
-    ga_obj.population = 100;
+    ga_obj.population = 10;
     ga_obj.generation_max = generations;
     ga_obj.calculate_MO_objectives = std::bind(&MoGaSolver::calculate_MO_objectives, this, std::placeholders::_1);
     ga_obj.init_genes = bind(&MoGaSolver::init_genes, this, std::placeholders::_1, std::placeholders::_2);
@@ -42,84 +51,143 @@ void MoGaSolver::vSolve() {
     std::cout << "ga solver" << std::endl;
 }
 
+std::vector<std::shared_ptr<DirectedLink>> MoGaSolver::getRouteLinks(stream_id_t streamId, route_t routeId) const {
+    return input->streams[streamId]->getRoutes()[routeId]->getLinks();
+}
+
 void MoGaSolver::setEachHopStartTime(const TtStreams &p, MyMiddleCost &c) {
-    for (const auto &[streamId, pos]: input->streamsId) {
-        const auto &stream = input->streams[pos];
-        auto routeLinks = stream->getRoutes()[p.routes[streamId]]->getLinks();
+    for (const auto &stream: input->streams) {
+        if (!p.useNoWait && stream->getPcp() == P5)
+            continue;
+        stream_id_t streamId = stream->getId();
+        const auto &route = getRouteLinks(streamId, p.routes[streamId]);
         sched_time_t accDelay = p.offsets[streamId];
-        for (int i = 0; i < routeLinks.size(); ++i) {
-            accDelay += routeLinks[i]->getSrcNode()->getDpr();
+        for (hop_t i = 0; i < route.size(); ++i) {
+            accDelay += route[i]->getSrcNode()->getDpr();
             c.trafficOffsets[streamId][i] = accDelay;
             accDelay += (sched_time_t) (
-                    stream->getLength() * routeLinks[i]->getSrcPort()->getTransmitSpd()
-                    + routeLinks[i]->getPropSpeed() * routeLinks[i]->getLen()
+                    stream->getLength() * route[i]->getSrcPort()->getTransmitSpd()
+                    + route[i]->getPropSpeed() * route[i]->getLen()
             );
         }
-        c.trafficOffsets[streamId][routeLinks.size()] = accDelay;
-        if (stream->getPcp() == P5)
-            c.ddlOrE2E[streamId] = accDelay - p.offsets[streamId];
-        else if (stream->getPcp() == P6)
+        c.trafficOffsets[streamId][route.size()] = accDelay;
+        if (stream->getPcp() == P6)
             c.ddlOrE2E[streamId] = accDelay;
+        if (p.useNoWait && stream->getPcp() == P5)
+            c.ddlOrE2E[streamId] = accDelay - p.offsets[streamId];
     }
 }
 
 bool MoGaSolver::checkDDLorE2E(MyMiddleCost &c,
-                               std::pair<stream_id_t, sched_time_t> &max_ddl,
-                               std::pair<stream_id_t, sched_time_t> &max_e2e) {
+                               bool useNoWait,
+                               std::pair<stream_id_t, sched_time_t> &maxDdl,
+                               std::pair<stream_id_t, sched_time_t> &maxE2E) {
     for (const auto &[streamId, pos]: input->streamsId) {
         const auto &stream = input->streams[pos];
-        if (c.ddlOrE2E[streamId] >= stream->getDeliveryGuarantee()->getLowerVal())
+        if (stream->getPcp() == P6
+            && c.ddlOrE2E[streamId] >= stream->getDeliveryGuarantee()->getLowerVal())
             return false;
-        if (stream->getPcp() == P5) {
-            if (max_e2e.second < c.ddlOrE2E[streamId])
-                max_e2e = std::make_pair(streamId, c.ddlOrE2E[streamId]);
-        } else if (stream->getPcp() == P6)
-            if (max_ddl.second < c.ddlOrE2E[streamId])
-                max_ddl = std::make_pair(streamId, c.ddlOrE2E[streamId]);
+        if (stream->getPcp() == P6
+            && maxDdl.second < c.ddlOrE2E[streamId])
+            maxDdl = std::make_pair(streamId, c.ddlOrE2E[streamId]);
+        if (c.ddlOrE2E.contains(streamId)
+            && stream->getPcp() == P5) {
+            if (c.ddlOrE2E[streamId] >= stream->getDeliveryGuarantee()->getLowerVal())
+                return false;
+            if (maxE2E.second < c.ddlOrE2E[streamId])
+                maxE2E = std::make_pair(streamId, c.ddlOrE2E[streamId]);
+        }
     }
     return true;
 }
 
-void MoGaSolver::setLinkHyperperiod(const std::vector<route_t> &routes,
-                                    map<link_id_t, sched_time_t> &linkHyperperiod) {
-    if (!linkHyperperiod.empty()) {
-        linkHyperperiod.clear();
-    }
-    for (const auto &[streamId, pos]: input->streamsId) {
-        const auto &stream = input->streams[pos];
-        for (const auto &link: stream->getRoutes()[routes[streamId]]->getLinks()) {
-            if (linkHyperperiod.contains(link->getId()))
-                linkHyperperiod[link->getId()] = std::lcm(linkHyperperiod[link->getId()], stream->getPeriod());
-            else
-                linkHyperperiod[link->getId()] = stream->getPeriod();
-        }
-    }
-}
-
 void MoGaSolver::groupStreams(const std::vector<route_t> &routes,
                               MyMiddleCost &c) {
-    for (auto const &streamId: input->streamsGroupByPcp[P5]) {
-        bool couldCache = true;
-        auto const &stream = input->streams[input->streamsId[streamId]];
-        auto routeLinks = stream->getRoutes()[routes[streamId]]->getLinks();
-        sched_time_t srcHyp = c.linkHyperperiod[routeLinks[0]->getId()];
-        for (int i = 1; i < routeLinks.size(); ++i) {
-            if (c.linkHyperperiod[routeLinks[i]->getId()] < srcHyp
-                && (c.linkHyperperiod[routeLinks[i]->getId()] % srcHyp != 0)) {
-                couldCache = false;
-                break;
+    for (stream_id_t i = 0; i < routes.size(); ++i) {
+        auto const &route = getRouteLinks(i, routes[i]);
+        hop_t j = 0;
+        for (const auto &link: route)
+            c.linkFlows[link->getId()].emplace_back(i, j++);
+    }
+    std::map<stream_id_t, bool> streamVisit;
+
+    for (const auto &stream: input->streams)
+        streamVisit[stream->getId()] = false;
+    group_id_t groupId = 0;
+    for (const auto &stream: input->streams) {
+        if (streamVisit[stream->getId()]) continue;
+        std::vector<stream_id_t> group;
+        std::queue<stream_id_t> tmp;
+        streamVisit[stream->getId()] = true;
+        group.push_back(stream->getId());
+        tmp.push(stream->getId());
+        while (!tmp.empty()) {
+            const auto &route = getRouteLinks(stream->getId(), routes[tmp.front()]);
+            tmp.pop();
+            for (const auto &link: route) {
+                for (const auto& [streamId, _]: c.linkFlows[link->getId()]) {
+                    if (!streamVisit[streamId]) {
+                        group.push_back(streamId);
+                        tmp.push(streamId);
+                        streamVisit[streamId] = true;
+                    }
+                }
             }
         }
-        if (couldCache)
-            c.cachedFlows.push_back(streamId);
-        else
-            c.uncachedFlows.push_back(streamId);
+        c.groupStream[groupId++] = group;
     }
-    for (auto const &streamId: c.uncachedFlows) {
-        auto const &routeLinks = input->streams[input->streamsId[streamId]]->getRoutes()[routes[streamId]]->getLinks();
-        hop_t i = 0;
-        for (const auto &link: routeLinks) {
-            c.linkFlows[link->getId()].emplace_back(streamId, i++);
+
+    for (const auto &[_groupId, streamsInGroup]: c.groupStream) {
+        for (const auto & streamId: streamsInGroup) {
+            if (input->streams[input->streamsId[streamId]]->getPcp() == P5)
+                c.cachedFlows[_groupId].push_back(streamId);
+            else if (input->streams[input->streamsId[streamId]]->getPcp() == P6)
+                c.uncachedFlows[_groupId].push_back(streamId);
+        }
+    }
+
+    c.linkFlows.clear();
+    for (const auto &[_groupId, streamsInGroup]: c.uncachedFlows) {
+        for (auto const &streamId: streamsInGroup) {
+            auto const &route = getRouteLinks(streamId, routes[streamId]);
+            hop_t i = 0;
+            for (const auto &link: route) {
+                c.linkFlows[link->getId()].emplace_back(streamId, i++);
+            }
+        }
+    }
+
+}
+
+void MoGaSolver::setLinkHyperperiod(const TtStreams &p, MyMiddleCost &c) {
+    if (!c.linkHyperperiod.empty()) {
+        c.linkHyperperiod.clear();
+    }
+    if (p.useNoWait) {
+        for (const auto &[groupId, streamsInGroup]: c.groupStream) {
+            for (const auto & streamId: streamsInGroup) {
+                for (const auto &link: getRouteLinks(streamId, p.routes[streamId])) {
+                    const auto &stream = input->streams[input->streamsId[streamId]];
+                    if (c.linkHyperperiod[groupId].contains(link->getId()))
+                        c.linkHyperperiod[groupId][link->getId()]
+                            = std::lcm(c.linkHyperperiod[groupId][link->getId()], stream->getPeriod());
+                    else
+                        c.linkHyperperiod[groupId][link->getId()] = stream->getPeriod();
+                }
+            }
+        }
+    } else {
+        for (const auto &[groupId, streamsInGroup]: c.uncachedFlows) {
+            for (const auto & streamId: streamsInGroup) {
+                const auto &stream = input->streams[input->streamsId[streamId]];
+                for (const auto &link: getRouteLinks(streamId, p.routes[streamId])) {
+                    if (c.linkHyperperiod[groupId].contains(link->getId()))
+                        c.linkHyperperiod[groupId][link->getId()]
+                            = std::lcm(c.linkHyperperiod[groupId][link->getId()], stream->getPeriod());
+                    else
+                        c.linkHyperperiod[groupId][link->getId()] = stream->getPeriod();
+                }
+            }
         }
     }
 }
@@ -172,58 +240,70 @@ bool MoGaSolver::checkCollision(MyMiddleCost &c, const std::vector<route_t> &rou
 }
 
 std::pair<sched_time_t, sched_time_t>
-MoGaSolver::compressP6Help(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
-                           sched_time_t sjPeriod, sched_time_t sjMid, sched_time_t sjLen,
+MoGaSolver::compressP6Help(sched_time_t siPeriod, sched_time_t siStart, sched_time_t siLen,
+                           sched_time_t sjPeriod, sched_time_t sjStart, sched_time_t sjLen,
                            bool &couldMoveRight,
                            bool &couldMoveLeft) {
     sched_time_t hpij = std::lcm(siPeriod, sjPeriod);
     sched_time_t dist = (siLen + sjLen) / 2 + IFG_TIME;
     sched_time_t left = INT64_MIN;
     sched_time_t right = INT64_MAX;
-    sched_time_t _sjMid = sjMid % sjPeriod;
+    sched_time_t _sjMid = (sjStart + sjLen / 2) % sjPeriod;
     for (int k = 0; k < hpij / siPeriod; ++k) {
         /*           d = (sjMid + k * sjPeriod % siPeriod  - fi_mid*/
-        sched_time_t d = (siMid + k * siPeriod) % sjPeriod - _sjMid;
-        if (std::abs(d) < dist) {
+        sched_time_t d = (siStart + siLen / 2 + k * siPeriod) % sjPeriod - _sjMid;
+        if (std::abs(d) == dist) {
             SPDLOG_LOGGER_TRACE(spdlog::get("console"), "dist = {}, d = {}", dist, d);
-            couldMoveLeft = false;
-            couldMoveRight = false;
             return std::make_pair(left, right);
-        } else if (d < 0 && couldMoveRight) {
-            if (left != INT64_MIN)
-                left = (d + dist) > left ? (d + dist) : left;
-            else
-                left = d + dist;
-        } else if (d > 0 && couldMoveLeft) {
+        } else if (d < 0) {
+            /* right is negative, choose the bigger */
+            couldMoveRight = true;
             if (right != INT64_MAX)
-                right = (d - dist) < right ? (d - dist) : right;
+                right = (d + dist) < right ? right : (d - dist);
             else
-                right = d - dist;
+                right = d + dist;
+        } else if (d > 0) {
+            couldMoveLeft = true;
+            if (left != INT64_MIN)
+                left = (d - dist) > left ? left : (d - dist);
+            else
+                left = d - dist;
         }
     }
-    if (left == INT64_MIN && couldMoveRight)
-        couldMoveRight = false;
-    if (right == INT64_MAX && couldMoveLeft)
-        couldMoveLeft = false;
-    return std::make_pair(left, right);
+    return std::make_pair(-left, -right);
 }
 
 void MoGaSolver::compressP6(const TtStreams &p, MyMiddleCost &c) {
-    for (const auto &stream: input->streams) {
-        sched_time_t moveRight = INT64_MIN;
-        sched_time_t moveLeft = INT64_MAX;
+    std::vector<std::pair<stream_id_t, sched_time_t>> offsets(p.offsets.size());
+    for (int i = 0; i < p.offsets.size(); ++i)
+        offsets.emplace_back(i, p.offsets[i]);
+    std::sort(offsets.begin(), offsets.end(), [](std::pair<stream_id_t, sched_time_t> a, std::pair<stream_id_t, sched_time_t> b){
+        return a.second < b.second;
+    });
+//    std::vector<stream_id_t> compressedStreams;
+//    compressedStreams.push_back(input->streams[0]->getId());
+    for (size_t i = 1; i < offsets.size(); ++i) {
+        if (input->streams[offsets[i].first]->getPcp() != P6) continue;
+        const auto& stream = input->streams[offsets[i].first];
+        sched_time_t moveRight = INT64_MAX;
+        sched_time_t moveLeft = INT64_MIN;
         std::vector<std::pair<sched_time_t, sched_time_t>> compressInterval;
-        const auto &route = stream->getRoutes()[p.routes[stream->getId()]]->getLinks();
-        bool couldMoveRight = true;
-        bool couldMoveLeft = true;
-        for (hop_t i = 0; i < route.size(); ++i) {
-            const auto &link = route[i];
+        const auto &route = getRouteLinks(offsets[i].first, p.routes[offsets[i].first]);
+        bool couldMoveRight = false;
+        bool couldMoveLeft = false;
+        for (hop_t j = 0; j < route.size(); ++j) {
+            const auto &link = route[j];
             double transmitSpd = input->links[link->getId()]->getSrcPort()->getTransmitSpd();
             for (const auto &[streamId, hop]: c.linkFlows[link->getId()]) {
                 if (streamId == stream->getId()) continue;
-                const auto &streamComp = input->streams[streamId];
+                bool hasCompressed = false;
+                for (int k = 0; k < i; ++k) {
+                    if (offsets[k].first == streamId)
+                        hasCompressed = true;
+                }
+                const auto &streamComp = input->streams[input->streamsId[streamId]];
                 auto comp = compressP6Help(stream->getPeriod(),
-                                           c.trafficOffsets[stream->getId()][i],
+                                           c.trafficOffsets[stream->getId()][j],
                                            stream->getLength() * transmitSpd,
                                            streamComp->getPeriod(),
                                            c.trafficOffsets[streamId][hop],
@@ -237,25 +317,25 @@ void MoGaSolver::compressP6(const TtStreams &p, MyMiddleCost &c) {
         if (couldMoveRight) {
             std::sort(compressInterval.begin(), compressInterval.end(),
                       [](std::pair<sched_time_t, sched_time_t> a, std::pair<sched_time_t, sched_time_t> b) {
-                          return a.first > b.first;
+                          return a.second < b.second;
                       });
-            moveRight = compressInterval[0].first;
+            moveRight = compressInterval[0].second;
         }
         if (couldMoveLeft) {
             std::sort(compressInterval.begin(), compressInterval.end(),
                       [](std::pair<sched_time_t, sched_time_t> a, std::pair<sched_time_t, sched_time_t> b) {
-                          return a.second < b.second;
+                          return a.first > b.first;
                       });
-            moveLeft = compressInterval[0].second;
+            moveLeft = compressInterval[0].first;
         }
-        if (!couldMoveRight) {
+        if (!couldMoveRight && couldMoveLeft) {
             for (size_t i = 0; i <= route.size(); ++i)
-                c.trafficOffsets[stream->getId()][i] += -moveRight;
-        } else if (!couldMoveLeft) {
+                c.trafficOffsets[stream->getId()][i] += moveLeft;
+        } else if (!couldMoveLeft && couldMoveRight) {
             for (size_t i = 0; i <= route.size(); ++i)
-                c.trafficOffsets[stream->getId()][i] += -moveLeft;
+                c.trafficOffsets[stream->getId()][i] += moveRight;
         } else {
-            sched_time_t move = std::min(std::abs(moveRight), std::abs(moveLeft));
+            sched_time_t move = std::abs(moveRight) < std::abs(moveLeft) ? moveRight : moveLeft;
             for (size_t i = 0; i <= route.size(); ++i)
                 c.trafficOffsets[stream->getId()][i] += -move;
         }
@@ -263,73 +343,123 @@ void MoGaSolver::compressP6(const TtStreams &p, MyMiddleCost &c) {
     }
 }
 
-bool MoGaSolver::checkQueueCache(const TtStreams &p, MyMiddleCost &c) {
-    for (const auto &streamId: c.cachedFlows) {
-        const auto streamI = input->streams[input->streamsId[streamId]];
-        const auto route = streamI->getRoutes()[p.routes[streamId]]->getLinks();
-        sched_time_t srcHyp = c.linkHyperperiod[route[0]->getId()];
-        size_t srcSendTimes = srcHyp / streamI->getPeriod();
-        /* Set send time at first hop */
-        for (size_t i = 0; i < srcSendTimes; ++i)
-            c.p5TrafficOffsets[streamId][0][i] = p.offsets[streamId] + i * streamI->getPeriod();
-        /* repeat each hop of flow i */
-        for (size_t i = 0; i < route.size(); ++i) {
-            const auto &link = route[i];
-            size_t count = 0;
-            sched_time_t fi_len = static_cast<sched_time_t>(streamI->getLength() *
-                                                            link->getSrcPort()->getTransmitSpd());
-            sched_time_t dist = fi_len / 2;
-            size_t fi_cur_snd_times = c.linkHyperperiod[link->getId()] / streamI->getPeriod();
-            for (size_t j = 0; j < fi_cur_snd_times; ++j) {
-                if (j >= srcSendTimes) {
-                    c.p5TrafficOffsets[streamId][i][j] =
-                            c.p5TrafficOffsets[streamId][i][j % srcSendTimes] + j / srcSendTimes * srcHyp;
-                } else {
-                    c.p5TrafficOffsets[streamId][i][j] += link->getSrcNode()->getDpr();
+void MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
+    for (const auto &[groupId, streamsInGroup]: c.cachedFlows) {
+        for (auto const &streamIdI: streamsInGroup) {
+            const auto &streamI = input->streams[input->streamsId[streamIdI]];
+            const auto &route = getRouteLinks(streamIdI, p.routes[streamIdI]);
+            for (hop_t i = 0; i < route.size(); ++i) {
+                double transmitSpd = route[i]->getSrcPort()->getTransmitSpd();
+                sched_time_t streamILen = streamI->getLength() * transmitSpd;
+                link_id_t linkId = route[i]->getId();
+
+
+                for (int j = 0; j < hyperPeriod / streamI->getPeriod(); ++j) {
+                    sched_time_t send = 0;
+                    if (i > 0)
+                        send = c.p5TrafficOffsets[streamIdI][i - 1][j].first +
+                               streamI->getLength() * route[i - 1]->getSrcPort()->getTransmitSpd() +
+                               route[i - 1]->getPropSpeed() * route[i - 1]->getLen();
+                    else
+                        send = (int64_t) (p.offsets[streamIdI] + j * streamI->getPeriod());
+                    c.p5TrafficOffsets[streamIdI][i][j] =
+                            std::make_pair(send, send % c.linkHyperperiod[linkId]);
                 }
-                sched_time_t fi_start = c.p5TrafficOffsets[streamId][i][j];
-                sched_time_t fi_mid = fi_start + fi_len / 2;
-                for (auto const &[fj_id, hop_j]: c.linkFlows[link->getId()]) {
-                    const auto streamJ = input->streams[input->streamsId[fj_id]];
-                    /* check queue cache with isochronous flows */
-                    if (streamJ->getPcp() != P6) continue;
-                    sched_time_t fj_start = c.trafficOffsets[fj_id][hop_j] % streamJ->getPeriod();
-                    int d = static_cast<int>(fi_mid % streamJ->getPeriod() - fj_start);
-                    if (std::abs(d) < dist) {
-                        SPDLOG_LOGGER_TRACE(spdlog::get("console"),
-                                            "NO COLLISION CHECK FAILED, flow[{}] and flow[{}]", flowId,
-                                            streamJ.getId());
-                        return false;
-                    }
-                    sched_time_t fj_len = static_cast<int>(streamJ->getLength() * link->getSrcPort()->getTransmitSpd());
-                    if (d > 0 && fi_start % streamJ->getPeriod() < (fj_start + fj_len + IFG_TIME)) {
-                        if (j > srcSendTimes)
-                            return false;
-                        if (i > 0 && streamI->getPeriod() % streamJ->getPeriod() != 0)
-                            return false;
-                        sched_time_t q_delay = fj_start + fj_len + IFG_TIME - fi_start % streamJ->getPeriod();
-                        c.totalCache += static_cast<double>(q_delay);
-                        c.p5TrafficOffsets[streamId][i][j] += q_delay;
-                        count++;
-                    }
-                }
-                if (j < srcSendTimes) {
-                    c.p5TrafficOffsets[streamId][i + 1][j] =
-                            c.p5TrafficOffsets[streamId][i][j] + fi_len + link->getPropSpeed() * link->getLen();
-                }
-            }
-            count *= fi_cur_snd_times / srcSendTimes;
-            if (input->links[link->getId()].get()->getSrcNode()->getNodeType() == SWITCH) {
-                c.linkGclSize[link->getId()] =
-                        c.linkGclSize[link->getId()] - count;
-                if (c.linkGclMergeCount.contains(link->getId()))
-                    c.linkGclMergeCount[link->getId()] += count;
-                else
-                    c.linkGclMergeCount[link->getId()] = count;
+
             }
         }
     }
-    return true;
+    for (const auto &streamIdI: c.cachedFlows) {
+        const auto &streamI = input->streams[input->streamsId[streamIdI]];
+        const auto &route = getRouteLinks(streamIdI, p.routes[streamIdI]);
+        for (hop_t i = 0; i < route.size(); ++i) {
+            double transmitSpd = route[i]->getSrcPort()->getTransmitSpd();
+            sched_time_t streamILen = streamI->getLength() * transmitSpd;
+            link_id_t linkId = route[i]->getId();
+            /* set start time at beginning of check collision */
+            for (int j = 0; j < hyperPeriod / streamI->getPeriod(); ++j) {
+                sched_time_t send = 0;
+                if (i > 0)
+                    send = c.p5TrafficOffsets[streamIdI][i - 1][j].first +
+                           streamI->getLength() * route[i - 1]->getSrcPort()->getTransmitSpd() +
+                           route[i - 1]->getPropSpeed() * route[i - 1]->getLen();
+                else
+                    send = (int64_t) (p.offsets[streamIdI] + j * streamI->getPeriod());
+                c.p5TrafficOffsets[streamIdI][i][j] =
+                        std::make_pair(send, send % c.linkHyperperiod[linkId]);
+            }
+            for (const auto &[streamIdJ, hopJ]: c.linkFlows[linkId]) {
+                const auto &streamJ = input->streams[input->streamsId[streamIdJ]];
+                sched_time_t streamJLen = streamJ->getLength() * transmitSpd;
+                sched_time_t d = (streamILen + streamJLen) / 2 + IFG_TIME;
+                if (streamJ->getPcp() == P6) {
+                    sched_time_t sjMid = c.trafficOffsets[streamIdJ][hopJ] + streamJLen / 2;
+                    sched_time_t sjMidMod = sjMid % streamJ->getPeriod();
+                    for (int j = 0; j < hyperPeriod / streamI->getPeriod(); ++j) {
+                        sched_time_t siMid = c.p5TrafficOffsets[streamIdI][i][j].first + streamILen / 2;
+                        sched_time_t siMidMod = siMid % streamJ->getPeriod();
+                        if (siMidMod > sjMidMod && siMidMod - sjMidMod < d) {
+                            /*                                           (d - (siMidMod - sjMidMod))*/
+                            c.p5TrafficOffsets[streamIdI][i][j].first += (d - siMidMod + sjMidMod);
+                            c.p5TrafficOffsets[streamIdI][i][j].second =
+                                    c.p5TrafficOffsets[streamIdI][i][j].first % c.linkHyperperiod[linkId];
+                        } else if (siMidMod < sjMidMod && sjMidMod - siMidMod < d) {
+                            /* (sjMidMod + streamJLen / 2 - (siMidMod + streamILen / 2)) */
+                            c.p5TrafficOffsets[streamIdI][i][j].first += (sjMidMod - siMidMod + d);
+                            c.p5TrafficOffsets[streamIdI][i][j].second =
+                                    c.p5TrafficOffsets[streamIdI][i][j].first % c.linkHyperperiod[linkId];
+                        }
+                    }
+                } else if (streamJ->getPcp() == P5) {
+                    for (const auto &[sjIdx, sjOffset]: c.p5TrafficOffsets[streamIdJ][hopJ]) {
+                        sched_time_t sjMid = sjOffset.first + streamJLen / 2;
+                        sched_time_t sjMidMod = sjOffset.second + streamJLen / 2;
+                        for (const auto &[siIdx, siOffset]: c.p5TrafficOffsets[streamIdI][i]) {
+                            sched_time_t siMid = siOffset.first + streamILen / 2;
+                            sched_time_t siMidMod = siOffset.second + streamILen / 2;
+                            if (std::abs(siMidMod - sjMidMod) <= d) {
+                                if (!c.reuseGroupIndex.contains(linkId))
+                                    c.reuseGroupIndex[linkId] = 0;
+                                std::pair<sched_time_t, sched_time_t> _siOffset = siOffset;
+                                std::pair<sched_time_t, sched_time_t> _sjOffset = sjOffset;
+
+                                if (std::abs(siMid - sjMid) > d) {
+                                    if (siMidMod > sjMidMod) {
+//                                        if (siMid / c.linkHyperperiod[linkId] == )
+                                        _siOffset.first += (d - siMidMod + sjMidMod);
+                                        _siOffset.second += (d - siMidMod + sjMidMod);
+                                    } else {
+
+                                    }
+                                } else {
+                                    if (siMidMod > sjMidMod) {
+
+                                    } else {
+
+                                    }
+                                }
+                                c.linkReuseMapRecorder[linkId][c.reuseGroupIndex[linkId]][streamIdI] = _siOffset;
+                                c.linkReuseMapRecorder[linkId][c.reuseGroupIndex[linkId]][streamIdJ] = _sjOffset;
+                            }
+
+                            if (siMidMod > sjMidMod && siMidMod - sjMidMod < d) {
+                                /*                                           (d - (siMidMod - sjMidMod))*/
+                                c.p5TrafficOffsets[streamIdI][i][siIdx].first += (d - siMidMod + sjMidMod);
+                                c.p5TrafficOffsets[streamIdI][i][siIdx].second =
+                                        c.p5TrafficOffsets[streamIdI][i][siIdx].first % c.linkHyperperiod[linkId];
+                            } else if (siMidMod < sjMidMod && sjMidMod - siMidMod < d) {
+                                /* (sjMidMod + streamJLen / 2 - (siMidMod + streamILen / 2)) */
+                                c.p5TrafficOffsets[streamIdI][i][siIdx].first += (sjMidMod - siMidMod + d);
+                                c.p5TrafficOffsets[streamIdI][i][siIdx].second =
+                                        c.p5TrafficOffsets[streamIdI][i][siIdx].first % c.linkHyperperiod[linkId];
+                            }
+                        }
+                    }
+                }
+            }
+            c.linkFlows[linkId].emplace_back(streamIdI, i);
+        }
+    }
 }
 
 void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd01) {
@@ -368,46 +498,37 @@ void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd
                      > stream->getDeliveryGuarantee()->getLowerVal());
         }
     }
-    p.useNoWait = rnd01() <= 0.5;
+//    p.useNoWait = rnd01() <= 0.5;
+    p.useNoWait = false;
 }
 
 bool MoGaSolver::eval_solution(const TtStreams &p, MyMiddleCost &c) {
     setEachHopStartTime(p, c);
+
     std::pair<stream_id_t, sched_time_t> max_ddl;
     std::pair<stream_id_t, sched_time_t> max_e2e;
-    if (!checkDDLorE2E(c, max_ddl, max_e2e))
+    if (!checkDDLorE2E(c, p.useNoWait, max_ddl, max_e2e))
         return false;
     if (p.useNoWait) {
         for (const auto &[streamId, pos]: input->streamsId) {
             auto const &stream = input->streams[input->streamsId[streamId]];
-            for (int i = 0; i < stream->getRoutes()[p.routes[streamId]]->getLinks().size(); ++i) {
-                link_id_t linkId = stream->getRoutes()[p.routes[streamId]]->getLinks()[i]->getId();
+            const auto &route = getRouteLinks(streamId, p.routes[streamId]);
+            for (hop_t i = 0; i < route.size(); ++i) {
+                link_id_t linkId = route[i]->getId();
                 c.linkFlows[linkId].emplace_back(streamId, i);
             }
         }
         if (!checkCollision(c, p.routes))
             return false;
     } else {
-        c.uncachedFlows.insert(c.uncachedFlows.end(),
-                               input->streamsGroupByPcp[P6].begin(),
-                               input->streamsGroupByPcp[P6].end());
-        setLinkHyperperiod(p.routes, c.linkHyperperiod);
         groupStreams(p.routes, c);
-
+        setLinkHyperperiod(p, c);
         if (!checkCollision(c, p.routes))
             return false;
-
-        compressP6(p, c);
-
+//        compressP6(p, c);
+        scheduleP5(p, c);
     }
 
-    for (auto const &streamId: c.cachedFlows) {
-        auto const &stream = input->streams[input->streamsId[streamId]];
-        for (int i = 0; i < stream->getRoutes()[p.routes[streamId]]->getLinks().size(); ++i) {
-            link_id_t linkId = stream->getRoutes()[p.routes[streamId]]->getLinks()[i]->getId();
-            c.linkFlows[linkId].emplace_back(streamId, i);
-        }
-    }
     for (auto const &[linkId, streamHop]: c.linkFlows) {
         if (input->links[linkId]->getSrcNode()->getNodeType() == SWITCH) {
             for (auto const &[streamId, hop]: streamHop) {
@@ -421,18 +542,6 @@ bool MoGaSolver::eval_solution(const TtStreams &p, MyMiddleCost &c) {
         }
     }
 
-    if (!checkQueueCache(p, c))
-        return false;
-//
-//    if (!checkP5CollisionCachedWithUncached(c, oss))
-//        return false;
-//
-//    if (!checkP5CollisionCached(c, oss))
-//        return false;
-//
-//
-//    if (!checkP5E2E(p, c))
-//        return false;
 
     for (int i = 0; i < input->streams.size(); ++i) {
         auto si = input->streams[input->streamsId[i]];

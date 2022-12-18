@@ -5,6 +5,8 @@
 #ifndef SCHEDPLUS_REFACTOR_MOGASOLVER_H
 #define SCHEDPLUS_REFACTOR_MOGASOLVER_H
 
+#include <set>
+#include <queue>
 #include "../Solver.h"
 #include "../../../lib/openGA/openGA.hpp"
 #include "GaSolution.h"
@@ -23,16 +25,19 @@ private:
 
     void vSolve() override;
 
+    [[nodiscard]] std::vector<std::shared_ptr<DirectedLink>> getRouteLinks(stream_id_t streamId, route_t routeId) const;
+
     void setEachHopStartTime(const TtStreams &p, MyMiddleCost &c);
 
-    bool checkDDLorE2E(MyMiddleCost &c, std::pair<stream_id_t, sched_time_t> &max_ddl,
-                       std::pair<stream_id_t, sched_time_t> &max_e2e);
-
-    void setLinkHyperperiod(const std::vector<route_t> &routes,
-                            map<link_id_t, sched_time_t> &linkHyperperiod);
+    bool checkDDLorE2E(MyMiddleCost &c,
+                       bool useNoWait,
+                       std::pair<stream_id_t, sched_time_t> &maxDdl,
+                       std::pair<stream_id_t, sched_time_t> &maxE2E);
 
     void groupStreams(const std::vector<route_t> &routes,
                       MyMiddleCost &c);
+
+    void setLinkHyperperiod(const TtStreams &p, MyMiddleCost &c);
 
     static bool checkCollisionHelp(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
                                    sched_time_t sjPeriod, sched_time_t sjMid, sched_time_t sjLen);
@@ -40,15 +45,14 @@ private:
     bool checkCollision(MyMiddleCost &c, const std::vector<route_t> &routes);
 
     static std::pair<sched_time_t, sched_time_t>
-    compressP6Help(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
-                   sched_time_t sjPeriod, sched_time_t sjMid, sched_time_t sjLen,
+    compressP6Help(sched_time_t siPeriod, sched_time_t siStart, sched_time_t siLen,
+                   sched_time_t sjPeriod, sched_time_t sjStart, sched_time_t sjLen,
                    bool &couldMoveRight,
-                   bool &couldMoveLeft
-    );
+                   bool &couldMoveLeft);
 
     void compressP6(const TtStreams &p, MyMiddleCost &c);
 
-    bool checkQueueCache(const TtStreams &p, MyMiddleCost &c);
+    void scheduleP5(const TtStreams &p, MyMiddleCost &c);
 
 public:
     explicit MoGaSolver(std::shared_ptr<Input> _input, bool _debug, int _generations);

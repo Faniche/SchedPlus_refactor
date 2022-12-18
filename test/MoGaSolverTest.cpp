@@ -11,6 +11,10 @@
 #define OPENGA_EXTERN_LOCAL_VARS
 #include "../src/solution/GeneticAlgorithm/MoGaSolver.h"
 
+int g_port_counter = 0;
+
+int g_node_id = 0;
+
 using namespace std;
 
 sched_time_t compressP6Help(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
@@ -41,9 +45,19 @@ sched_time_t compressP6Help(sched_time_t siPeriod, sched_time_t siMid, sched_tim
     return 1;
 }
 
+double getRand01() {
+    return rand()/RAND_MAX;
+}
+
+
 int main(int argc, char **argv) {
     compressP6Help(200000, 400, 800,     // period: 200us, start: 0, len: 800, mid: 400
                    300000, 1400, 800);   // period: 300us, start: 1000, len: 800, mid: 1400
-    int a = 10;
-    cout << "-a = " << -a << endl;
+
+    auto input = std::make_shared<Line_2sw_2es>();
+    input->setNodesAndLinks();
+    input->setStreams("streams.json");
+    auto gaSolver = std::make_unique<MoGaSolver>(input, true, 10);
+
+    gaSolver->solve();
 }
