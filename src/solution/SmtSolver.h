@@ -16,7 +16,7 @@ class SmtSolver: public Solver{
 private:
     std::shared_ptr<Input> input;
 
-    void vSolve() override;
+    void vSolve(const std::string &path, int32_t runId) override;
 
 public:
     explicit SmtSolver(std::shared_ptr<Input> input);

@@ -11,9 +11,9 @@
 class Solver {
 private:
 //    std::unique_ptr<Input> input;
-    virtual void vSolve() = 0;
+    virtual void vSolve(const std::string &path, int32_t runId) = 0;
 public:
-    void solve();
+    void solve(const std::string &path, int32_t runId);
 };
 
 

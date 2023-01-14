@@ -7,6 +7,7 @@
 #include "src/components/stream/Stream.h"
 #include "src/topology/Line_2sw_2es.h"
 #include "src/solution/Solver.h"
+
 #define OPENGA_EXTERN_LOCAL_VARS
 #include "src/solution/GeneticAlgorithm/MoGaSolver.h"
 
@@ -16,13 +17,47 @@ int g_port_counter = 0;
 
 int g_node_id = 0;
 
+void run(int optionTopology, const std::string &streamFilePath, bool flagDebug, int generationNumber, int runId){
+    if (runId != 0)  g_node_id = 0;
+    std::shared_ptr<Input> input;
+    std::string savePath = "SolutionReport/";
+    switch (optionTopology) {
+        case 1:
+            input = std::make_shared<Line_2sw_2es>();
+            savePath.append(LINE_2SW_2ES);
+            break;
+        case 2:
+            // TODO
+//                input = std::make_shared<Line_2sw_2es>();
+//                savePath.append(LINE_2SW_2ES);
+            break;
+        case 3:
+            // TODO
+//                input = std::make_shared<Line_2sw_2es>();
+//                savePath.append(LINE_2SW_2ES);
+            break;
+        default:
+            exit(EXIT_FAILURE);
+    }
+    input->setNodesAndLinks();
+    input->setStreams(streamFilePath);
+    /* append stream number to result path. */
+    savePath.append("/" + std::to_string(input->streams.size()) + "/");
+    if (runId == 0) {
+        bool ret = std::filesystem::remove_all(savePath);
+        std::filesystem::create_directories(savePath);
+    }
+    auto gaSolver = std::make_unique<MoGaSolver>(input, flagDebug, generationNumber);
+    gaSolver->solve(savePath, runId);
+}
+
 int main(int argc, char **argv) {
     CLI::App app{"Schedplus: based on GA to schedule time sensitive streams."};
     int option_topology = 0;
     std::string topology_description = "Topology index:\n\t1: line_1sw_2es\n\t2: line_2sw_2es\n\t3: ring_4sw";
     app.add_option("-t, --topology", option_topology, topology_description);
-    std::string option_ned_file;
-    app.add_option("-n, --ned", option_ned_file, "Net description file name");
+//    std::string option_ned_file;
+//    app.add_option("-n, --ned", option_ned_file, "Net description file name");
     std::string streamFilePath;
     app.add_option("-s, --stream", streamFilePath, "Streams json file");
     int option_flow_number = 2;
@@ -45,11 +80,10 @@ int main(int argc, char **argv) {
         console->set_level(spdlog::level::debug);
         spd::set_default_logger(console);
         spd::set_pattern("[%H:%M:%S] [%^%l%$] %s:%# %v");
-        auto input = std::make_shared<Line_2sw_2es>();
-        input->setNodesAndLinks();
-        input->setStreams(streamFilePath);
-        auto gaSolver = std::make_unique<MoGaSolver>(input, flag_debug, option_generation_number);
-        gaSolver->solve();
+
+        for (int i = 0; i < 10; ++i) {
+            run(option_topology, streamFilePath, flag_debug, option_generation_number, i);
+        }
 
 
     } catch (const spdlog::spdlog_ex &ex) {

@@ -8,7 +8,7 @@
 
 SmtSolver::SmtSolver(std::shared_ptr<Input> input) : input(std::move(input)) {}
 
-void SmtSolver::vSolve() {
+void SmtSolver::vSolve(const std::string &path, int32_t runId) {
     context c;
 
 
