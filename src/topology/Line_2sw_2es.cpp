@@ -10,8 +10,8 @@
 void Line_2sw_2es::vSetNodesAndLinks() {
     auto es0 = std::make_shared<EndSystem>("es0", 0);
     auto es1 = std::make_shared<EndSystem>("es1", 0);
-    auto sw0 = std::make_shared<Switch>("sw0", 30);
-    auto sw1 = std::make_shared<Switch>("sw1", 30);
+    auto sw0 = std::make_shared<Switch>("switch0", 20000);
+    auto sw1 = std::make_shared<Switch>("switch1", 20000);
     nodes.insert(nodes.begin(), {es0, es1, sw0, sw1});
     esList.insert(esList.begin(), {es0, es1});
     swList.insert(swList.begin(), {sw0, sw1});
