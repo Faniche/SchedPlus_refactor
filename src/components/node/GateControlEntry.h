@@ -12,24 +12,30 @@
 class GateControlEntry {
 private:
     std::vector<gate_event_t> gateStatesValue;
-    uint64_t startTime;
-    uint64_t timeIntervalValue;
+    sched_time_t startTime;
+    sched_time_t timeIntervalValue;
 public:
     GateControlEntry();
+
+    GateControlEntry(const std::vector<gate_event_t> &_gateStatesValue,
+                     sched_time_t _startTime,
+                     sched_time_t _timeIntervalValue);
+
+    explicit GateControlEntry(const std::tuple<sched_time_t, sched_time_t, std::string> &gce);
 
     [[nodiscard]] const std::vector<bool> &getGateStatesValue() const;
 
     void setGateStatesValue(uint8_t idx, gate_event_t gateState);
 
-    [[nodiscard]] uint64_t getStartTime() const;
+    [[nodiscard]] sched_time_t getStartTime() const;
 
-    void setStartTime(uint64_t _startTime);
+    void setStartTime(sched_time_t _startTime);
 
-    [[nodiscard]] uint64_t getTimeIntervalValue() const;
+    [[nodiscard]] sched_time_t getTimeIntervalValue() const;
 
-    void setTimeIntervalValue(uint64_t _timeIntervalValue);
+    void setTimeIntervalValue(sched_time_t _timeIntervalValue);
 
-    [[nodiscard]] std::string toBitVec() const;
+    [[nodiscard]] std::string toBitStr() const;
 };
 
 
