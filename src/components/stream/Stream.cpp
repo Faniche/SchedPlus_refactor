@@ -3,6 +3,7 @@
 //
 
 #include "Stream.h"
+#include "../node/EndSystem.h"
 
 Stream::Stream(stream_id_t id,
                sched_time_t period,
@@ -17,14 +18,15 @@ Stream::Stream(stream_id_t id,
                                               dest(dest) {
     size_t frame_num = length / MTU + 1;
     if (frame_num == 1) {
-        frames.emplace_back(new Frame(std::make_pair(id, 0), 0, length, period));
+        frames.push_back(std::make_shared<Frame>(std::make_pair(id, 0), 0, length, period));
     } else {
         for (frame_id_t i = 0; i < frame_num; ++i) {
-            frames.emplace_back(
-                new Frame(std::make_pair(id, i), 0, i == frame_num - 1? length % MTU: MTU, period)
+            frames.push_back(std::make_shared<Frame>(
+                std::make_pair(id, i), 0, i == frame_num - 1? length % MTU: MTU, period)
             );
         }
     }
+    srcTransmitDelay = length * std::static_pointer_cast<EndSystem>(src)->getPort()->getTransmitSpd();
 }
 
 stream_id_t Stream::getId() const {
@@ -91,6 +93,10 @@ void Stream::setRoutes(std::vector<std::shared_ptr<Route>> &&_routes) {
     routes = _routes;
 }
 
+const sched_time_t &Stream::getSrcTransmitDelay() const {
+    return srcTransmitDelay;
+}
+
 uint32_t Stream::getChosenRoute() const {
     return chosenRoute;
 }
@@ -101,4 +107,8 @@ void Stream::setChosenRoute(uint32_t selectedRouteInx) {
 
 const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &Stream::getLinkFrames() const {
     return linkFrames;
+}
+
+void Stream::setFramesOffset(size_t idx, sched_time_t offset) {
+    frames[idx]->setOffset(offset);
 }

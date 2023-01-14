@@ -31,6 +31,8 @@ protected:
 
     std::vector<std::shared_ptr<Route>> routes;
 
+    sched_time_t srcTransmitDelay;
+
     uint32_t chosenRoute = 0;
     std::vector<std::shared_ptr<Frame>> frames;
     std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> linkFrames;
@@ -70,11 +72,15 @@ public:
 
     void setRoutes(std::vector<std::shared_ptr<Route>> &&_routes);
 
+    [[nodiscard]] const sched_time_t &getSrcTransmitDelay() const;
+
     [[nodiscard]] uint32_t getChosenRoute() const;
 
     void setChosenRoute(uint32_t selectedRouteInx);
 
     [[nodiscard]] const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &getLinkFrames() const;
+
+    void setFramesOffset (size_t idx, sched_time_t offset);
 
 };
 
