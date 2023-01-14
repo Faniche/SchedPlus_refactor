@@ -23,9 +23,11 @@ private:
 
     int generations;
 
-    void vSolve() override;
+    void vSolve(const std::string &path, int32_t runId) override;
 
-    [[nodiscard]] std::vector<std::shared_ptr<DirectedLink>> getRouteLinks(stream_id_t streamId, route_t routeId) const;
+
+
+
 
     void setEachHopStartTime(const TtStreams &p, MyMiddleCost &c);
 
@@ -34,25 +36,27 @@ private:
                        std::pair<stream_id_t, sched_time_t> &maxDdl,
                        std::pair<stream_id_t, sched_time_t> &maxE2E);
 
-    void groupStreams(const std::vector<route_t> &routes,
-                      MyMiddleCost &c);
+    void groupStreamsInit(const std::vector<route_t> &routes,
+                          map<link_id_t, vector<std::pair<stream_id_t, hop_t>>> &linkFlows,
+                          map<group_id_t, vector<stream_id_t>> &groupStream);
+
+    void groupStreamsEval(const std::vector<route_t> &routes,
+                          MyMiddleCost &c);
 
     void setLinkHyperperiod(const TtStreams &p, MyMiddleCost &c);
 
-    static bool checkCollisionHelp(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
-                                   sched_time_t sjPeriod, sched_time_t sjMid, sched_time_t sjLen);
+    void setLinkStreamInterval(const TtStreams &p, MyMiddleCost &c);
 
-    bool checkCollision(MyMiddleCost &c, const std::vector<route_t> &routes);
+    bool checkCollisionWithInterval(const TtStreams &p, MyMiddleCost &c);
 
-    static std::pair<sched_time_t, sched_time_t>
-    compressP6Help(sched_time_t siPeriod, sched_time_t siStart, sched_time_t siLen,
-                   sched_time_t sjPeriod, sched_time_t sjStart, sched_time_t sjLen,
-                   bool &couldMoveRight,
-                   bool &couldMoveLeft);
+//    static bool checkCollisionWithStreamHelp(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
+//                                             sched_time_t sjPeriod, sched_time_t sjMid, sched_time_t sjLen);
+//
+//    bool checkCollisionWithStream(MyMiddleCost &c, const std::vector<route_t> &routes);
 
-    void compressP6(const TtStreams &p, MyMiddleCost &c);
+    bool scheduleP5(const TtStreams &p, MyMiddleCost &c);
 
-    void scheduleP5(const TtStreams &p, MyMiddleCost &c);
+
 
 public:
     explicit MoGaSolver(std::shared_ptr<Input> _input, bool _debug, int _generations);
@@ -80,8 +84,7 @@ public:
             const EA::GenerationType<TtStreams, MyMiddleCost> &last_generation,
             const vector<unsigned int> &pareto_fron);
 
-    void save_results(GA_Type &ga_obj, const std::string &ned_file);
-
+    void save_results(GA_Type &ga_obj, const std::string &path, int32_t runId);
 
 };
 
