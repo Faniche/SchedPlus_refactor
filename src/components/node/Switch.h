@@ -16,7 +16,7 @@ private:
 
     const std::string & vToString() override;
 public:
-    Switch(std::string &&_name, uint64_t _dpr, size_t _portNum = 8);
+    Switch(std::string &&_name, sched_time_t _dpr, size_t _portNum = 8);
 
     [[nodiscard]] const std::vector<std::shared_ptr<Port>> &getPorts() const;
 };

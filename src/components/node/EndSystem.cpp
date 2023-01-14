@@ -8,7 +8,8 @@ const std::string &EndSystem::vToString() {
     return getName();
 }
 
-EndSystem::EndSystem(std::string &&_name, uint64_t _dpr) : Node(std::move(_name), END_SYSTEM, _dpr) {
+EndSystem::EndSystem(std::string &&_name, sched_time_t _dpr) : Node(std::move(_name), END_SYSTEM, _dpr) {
+    g_port_counter = 0;
     port = std::make_shared<Port>();
 }
 

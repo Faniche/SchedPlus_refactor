@@ -15,7 +15,7 @@ private:
 
     const std::string & vToString() override;
 public:
-    EndSystem(std::string &&_name, uint64_t _dpr);
+    EndSystem(std::string &&_name, sched_time_t _dpr);
 
     [[nodiscard]] std::shared_ptr<Port> getPort() const;
 };
