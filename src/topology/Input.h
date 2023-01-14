@@ -22,6 +22,7 @@ private:
 
     virtual void vSetStreams(uint32_t streamsNu) = 0;
 
+    void setHyperPeriod();
 public:
     std::vector<std::shared_ptr<Node>> nodes;
     std::vector<std::shared_ptr<Node>> esList;
@@ -32,6 +33,7 @@ public:
     std::map<pcp_t , std::vector<stream_id_t>> streamsGroupByPcp;
     std::map<node_id_t, std::shared_ptr<Node>> nodeIdMap;
     std::map<std::string, std::shared_ptr<Node>> nodeNameMap;
+    sched_time_t hyperPeriod = 0;
 
     void setNodesAndLinks();
 
@@ -40,6 +42,12 @@ public:
     void setStreams(const std::string& streamFilePath);
 
     void getAllRoutes(std::shared_ptr<Stream> &stream, Graph &graph);
+
+    int getStreamPos(stream_id_t streamId);
+
+    std::shared_ptr<Stream> getStream(stream_id_t streamId);
+
+    std::vector<std::shared_ptr<DirectedLink>> getRouteLinks(stream_id_t streamId, route_t routeId);
 };
 
 

@@ -4,12 +4,22 @@
 
 #include "Input.h"
 
+void Input::setHyperPeriod() {
+    for (const auto& stream: streams) {
+        if (hyperPeriod != 0)
+            hyperPeriod = std::lcm(hyperPeriod, stream->getPeriod());
+        else
+            hyperPeriod = stream->getPeriod();
+    }
+}
+
 void Input::setNodesAndLinks() {
     vSetNodesAndLinks();
 }
 
 void Input::setStreams(uint32_t streamsNum) {
     vSetStreams(streamsNum);
+    setHyperPeriod();
 }
 
 void Input::setStreams(const std::string& streamFilePath) {
@@ -69,6 +79,9 @@ void Input::setStreams(const std::string& streamFilePath) {
         getAllRoutes(stream, graph);
         streams.push_back(stream);
     }
+    for (int i = 0; i < streams.size(); ++i)
+        streamsId[streams[i]->getId()] = i;
+    setHyperPeriod();
 }
 
 void Input::getAllRoutes(std::shared_ptr<Stream> &stream, Graph &graph) {
@@ -110,3 +123,16 @@ void Input::getAllRoutes(std::shared_ptr<Stream> &stream, Graph &graph) {
     }
     stream->setRoutes(std::move(routes));
 }
+
+int Input::getStreamPos(stream_id_t streamId) {
+    return streamsId[streamId];
+}
+
+std::shared_ptr<Stream> Input::getStream(stream_id_t streamId) {
+    return streams[streamsId[streamId]];
+}
+
+std::vector<std::shared_ptr<DirectedLink>> Input::getRouteLinks(stream_id_t streamId, route_t routeId) {
+    return streams[streamsId[streamId]]->getRoutes()[routeId]->getLinks();
+}
+
