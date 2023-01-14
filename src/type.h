@@ -55,6 +55,9 @@ constexpr eth_speed_t   SCHEDPLUS_10_ETHERNET = 10000000;
 constexpr eth_speed_t  SCHEDPLUS_100_ETHERNET = 100000000;
 constexpr eth_speed_t SCHEDPLUS_1000_ETHERNET = 1000000000;
 
+//std::string topology_description = "Topology index:\n\t1: line_1sw_2es\n\t2: line_2sw_2es\n\t3: ring_4sw";
+constexpr auto LINE_2SW_2ES = "line_2sw_2es";
+constexpr auto RING_4SW = "ring_4sw";
 
 
 #endif //SCHEDPLUS_REFACTOR_TYPE_H
