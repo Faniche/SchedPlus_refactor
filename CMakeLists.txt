@@ -24,10 +24,14 @@ add_executable(SchedPlus main.cpp
         src/solution/Solver.cpp src/solution/Solver.h
         src/solution/SmtSolver.cpp src/solution/SmtSolver.h
         lib/openGA/openGA.hpp
+        lib/pugixml/pugiconfig.hpp
+        lib/pugixml/pugixml.cpp
+        lib/pugixml/pugixml.hpp
         src/solution/GeneticAlgorithm/GaSolution.h
         src/solution/GeneticAlgorithm/GaMiddleCost.h
         src/solution/GeneticAlgorithm/MoGaSolver.cpp src/solution/GeneticAlgorithm/MoGaSolver.h
-        src/components/link/Graph.cpp src/components/link/Graph.h)
+        src/components/link/Graph.cpp src/components/link/Graph.h
+        src/solution/SaveSolution.cpp src/solution/SaveSolution.h)
 
 target_link_libraries(SchedPlus PUBLIC
         "${PROJECT_SOURCE_DIR}/lib/spdlog/build/libspdlog.a"
