@@ -115,7 +115,7 @@ void MoGaSolver::groupStreamsInit(const std::vector<route_t> &routes,
         group.push_back(stream->getId());
         streamQueue.push(stream->getId());
         while (!streamQueue.empty()) {
-            const auto &route = input->getRouteLinks(stream->getId(), routes[input->getStreamPos(streamQueue.front())]);
+            const auto &route = input->getRouteLinks(streamQueue.front(), routes[input->getStreamPos(streamQueue.front())]);
             streamQueue.pop();
             for (const auto &link: route) {
                 for (const auto &[streamId, _]: linkFlows[link->getId()]) {
