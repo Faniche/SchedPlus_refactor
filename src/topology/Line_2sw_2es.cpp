@@ -3,9 +3,7 @@
 //
 
 
-#include <fstream>
 #include "Line_2sw_2es.h"
-#include "../components/link/Graph.h"
 
 void Line_2sw_2es::vSetNodesAndLinks() {
     auto es0 = std::make_shared<EndSystem>("es0", 0);
@@ -45,9 +43,4 @@ void Line_2sw_2es::vSetNodesAndLinks() {
         nodeIdMap.emplace(i, nodes[i]);
         nodeNameMap.emplace(nodes[i]->getName(), nodes[i]);
     }
-}
-
-void Line_2sw_2es::vSetStreams(uint32_t streamsNum) {
-    // TODO
-    // set random stream
 }
