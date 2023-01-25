@@ -5,6 +5,8 @@
 #include "GateControlEntry.h"
 GateControlEntry::GateControlEntry() {
     gateStatesValue.assign(8, GATE_OPEN);
+    gateStatesValue[1] = GATE_CLOSE;
+    gateStatesValue[2] = GATE_CLOSE;
     startTime = 0;
     timeIntervalValue = 0;
 }
