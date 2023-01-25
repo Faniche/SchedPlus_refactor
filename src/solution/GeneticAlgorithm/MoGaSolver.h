@@ -54,6 +54,8 @@ private:
 //
 //    bool checkCollisionWithStream(MyMiddleCost &c, const std::vector<route_t> &routes);
 
+    bool scheduleP5Help(const TtStreams &p, MyMiddleCost &c);
+
     bool scheduleP5(const TtStreams &p, MyMiddleCost &c);
 
 

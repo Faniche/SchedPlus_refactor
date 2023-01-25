@@ -96,7 +96,7 @@ bool MoGaSolver::checkDDLorE2E(MyMiddleCost &c,
 void MoGaSolver::groupStreamsInit(const std::vector<route_t> &routes,
                                   map<link_id_t, vector<std::pair<stream_id_t, hop_t>>> &linkFlows,
                                   map<group_id_t, vector<stream_id_t>> &groupStream) {
-    for (const auto& [streamId, pos]: input->streamsId) {
+    for (const auto &[streamId, pos]: input->streamsId) {
         auto const &route = input->getRouteLinks(streamId, routes[pos]);
         hop_t j = 0;
         for (const auto &link: route)
@@ -115,7 +115,8 @@ void MoGaSolver::groupStreamsInit(const std::vector<route_t> &routes,
         group.push_back(stream->getId());
         streamQueue.push(stream->getId());
         while (!streamQueue.empty()) {
-            const auto &route = input->getRouteLinks(streamQueue.front(), routes[input->getStreamPos(streamQueue.front())]);
+            const auto &route = input->getRouteLinks(streamQueue.front(),
+                                                     routes[input->getStreamPos(streamQueue.front())]);
             streamQueue.pop();
             for (const auto &link: route) {
                 for (const auto &[streamId, _]: linkFlows[link->getId()]) {
@@ -132,13 +133,13 @@ void MoGaSolver::groupStreamsInit(const std::vector<route_t> &routes,
     for (auto &[_groupId, streamsInGroup]: groupStream) {
         std::sort(streamsInGroup.begin(), streamsInGroup.end(),
                   [this](stream_id_t &a, stream_id_t &b) {
-                      return input->getStream(a)->getPcp() < input->getStream(b)->getPcp()
+                      return input->getStream(a)->getPcp() > input->getStream(b)->getPcp()
                              || input->getStream(a)->getPeriod() < input->getStream(b)->getPeriod();
                   });
     }
 }
 
-void MoGaSolver::groupStreamsEval(const std::vector<route_t> &routes,  MyMiddleCost &c) {
+void MoGaSolver::groupStreamsEval(const std::vector<route_t> &routes, MyMiddleCost &c) {
     for (const auto &[groupId, streamsInGroup]: c.groupStream) {
         for (const auto &streamId: streamsInGroup) {
             if (input->getStream(streamId)->getPcp() == P5)
@@ -160,7 +161,8 @@ void MoGaSolver::groupStreamsEval(const std::vector<route_t> &routes,  MyMiddleC
     for (const auto &[groupId, streamsInGroup]: c.groupStream) {
         for (auto const &streamId: streamsInGroup) {
             if (c.groupHyperPeriod.contains(groupId))
-                c.groupHyperPeriod[groupId] = std::lcm(c.groupHyperPeriod[groupId], input->getStream(streamId)->getPeriod());
+                c.groupHyperPeriod[groupId] = std::lcm(c.groupHyperPeriod[groupId],
+                                                       input->getStream(streamId)->getPeriod());
             else
                 c.groupHyperPeriod[groupId] = input->getStream(streamId)->getPeriod();
         }
@@ -280,6 +282,11 @@ bool MoGaSolver::checkCollisionWithInterval(const TtStreams &p, MyMiddleCost &c)
 //    return true;
 //}
 
+bool MoGaSolver::scheduleP5Help(const TtStreams &p, MyMiddleCost &c) {
+
+    return true;
+}
+
 bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
     c.totalGcl = 0;
     c.totalCache = 0;
@@ -298,29 +305,38 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
                         /* 2 -- n */
                         send = get<0>(c.p5TrafficOffsets[streamId][j][i - 1]) +
                                get<2>(c.p5TrafficOffsets[streamId][j][i - 1]) +
-                               route[i - 1]->getPropSpeed() * route[i - 1]->getLen();
+                               route[i - 1]->getPropSpeed() * route[i - 1]->getLen() +
+                               input->links[linkId]->getSrcNode()->getDpr();
                     } else {
                         /* 1 */
-                        send = (int64_t)(p.offsets[input->getStreamPos(streamId)] + j * stream->getPeriod());
+                        send = (int64_t) (p.offsets[input->getStreamPos(streamId)] + j * stream->getPeriod());
                     }
                     sched_time_t siMid = send + transmitDelay / 2;
+                    if (!c.linkHyperperiod.contains(linkId))
+                        c.linkHyperperiod[linkId] = stream->getPeriod();
                     sched_time_t siMidMod = siMid % c.linkHyperperiod[linkId];
                     sched_time_t siStart = send % c.linkHyperperiod[linkId];
                     sched_time_t siEnd = (siStart + transmitDelay) % c.linkHyperperiod[linkId];
                     if (siEnd < siStart)
                         return false;
                     auto newGce = std::make_tuple(siStart, siEnd, "00100000");
+                    bool hasMoveBack = false;
                     for (auto iter = c.linkInterval[linkId].begin(); iter != c.linkInterval[linkId].end(); ++iter) {
                         sched_time_t sjStart = get<0>(*iter);
-                        sched_time_t sjEnd   = get<1>(*iter);
+                        sched_time_t sjEnd = get<1>(*iter);
                         sched_time_t sjMid = sjStart + (sjEnd - sjStart) / 2;
                         sched_time_t d = (transmitDelay + sjEnd - sjStart) / 2 + IFG_TIME;
 
+                        /* no collision with next gce, break the loop */
+                        if (hasMoveBack && siEnd + IFG_TIME < sjStart)
+                            break;
+//                        else
+//                            spdlog::get("console")->info("{}:{}: has move back", __FILE_NAME__, __LINE__);
                         while (std::abs(sjMid - siMidMod) > d && iter != c.linkInterval[linkId].end()) {
                             iter++;
                             if (iter != c.linkInterval[linkId].end()) {
                                 sjStart = get<0>(*iter);
-                                sjEnd   = get<1>(*iter);
+                                sjEnd = get<1>(*iter);
                                 sjMid = sjStart + (sjEnd - sjStart) / 2;
                                 d = (transmitDelay + sjEnd - sjStart) / 2 + IFG_TIME;
                             }
@@ -328,144 +344,122 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
 
                         sched_time_t moveBack = 0;
                         if (std::abs(sjMid - siMidMod) <= d) {
-                            std::string gsv = get<2>(*iter);
-                            get<0>(newGce) = sjStart;
-                            /* siStart >= sjStart, move frame of si back */
-                            if (c.linkIntervalDuplex[linkId][*iter].size() == 1 && gsv == "01000000") {
-                                if (siStart <= sjStart)
+                            get<0>(newGce) = get<0>(newGce) < sjStart ? get<0>(newGce) : sjStart;
+                            get<1>(newGce) = get<1>(newGce) < sjEnd ? sjEnd : get<1>(newGce);
+                            if (c.linkIntervalDuplex[linkId][*iter].size() == 1 && get<2>(*iter) == "01000000") {
+                                if (siStart < sjStart && sjStart < siEnd + IFG_TIME)
                                     return false;
-                                get<1>(newGce) = sjEnd + IFG_TIME + transmitDelay;
-                                moveBack = get<1>(newGce) - siEnd;
-                                if (moveBack < 0) {
-                                    spdlog::get("console")->error("{}:{}: something error", __FILE__, __LINE__);
+                                if (siStart >= sjStart) {
+                                    moveBack = sjEnd + IFG_TIME - siStart;
+                                    siStart  += moveBack;
+                                    siEnd    += moveBack;
+                                    siMidMod += moveBack;
+                                    siMid    += moveBack;
+                                    siEnd    %= c.linkHyperperiod[linkId];
+                                    if (siEnd < siStart)
+                                        return false;
+                                    send += moveBack;
+                                    c.totalCache += moveBack;
+                                    get<1>(newGce) += moveBack;
                                 }
+                                c.linkIntervalDuplex[linkId][newGce].emplace(send, send + transmitDelay, streamId);
+                                c.linkIntervalDuplex[linkId][newGce].insert(c.linkIntervalDuplex[linkId][*iter].begin(),
+                                                                            c.linkIntervalDuplex[linkId][*iter].end());
+                                c.linkIntervalDuplex[linkId].erase(*iter);
+                                iter = c.linkInterval[linkId].erase(iter);
+                                iter = c.linkInterval[linkId].insert(iter, newGce);
                             } else {
                                 int intervalUseCount = 0;
-                                for (const auto &[skStart, skEnd, _]: c.linkIntervalDuplex[linkId][*iter]) {
+                                sched_time_t _siMid = siMid;
+                                for (const auto &[skStart, skEnd, _streamId]: c.linkIntervalDuplex[linkId][*iter]) {
                                     sched_time_t _d = (transmitDelay + skEnd - skStart) / 2 + IFG_TIME;
                                     sched_time_t skMid = (skStart + skEnd) / 2;
-                                    if (std::abs(skMid - siMid) <= _d) {
+                                    if (std::abs(skMid - _siMid) <= _d) {
                                         intervalUseCount++;
-                                        if (siStart <= skStart && skStart < siEnd + IFG_TIME || intervalUseCount > 1)
+                                        if (intervalUseCount > 1) {
+                                            spdlog::get("console")->error("{}:{}: something error", __FILE__, __LINE__);
                                             return false;
-                                        moveBack = _d - std::abs(skMid - siMid);
-                                        sjEnd = (skEnd + IFG_TIME + transmitDelay) % c.linkHyperperiod[linkId];
+                                        }
+                                        if (send < skStart && skStart < send + transmitDelay + IFG_TIME)
+                                            return false;
+                                        if (send > skStart) {
+                                            moveBack = skEnd + IFG_TIME - send;
+                                            siStart  += moveBack;
+                                            siEnd    += moveBack;
+                                            siMidMod += moveBack;
+                                            siMid    += moveBack;
+                                            siEnd    %= c.linkHyperperiod[linkId];
+                                            if (siEnd < siStart)
+                                                return false;
+                                            send += moveBack;
+                                            c.totalCache += moveBack;
+                                            if (siEnd > get<1>(newGce))
+                                                get<1>(newGce) += moveBack;
+                                        }
+                                        _siMid += moveBack;
                                     }
                                 }
-                                if (intervalUseCount == 0) {
-                                    if (siStart > sjStart)
-                                        moveBack = 0;
-                                    else
-                                        moveBack = sjStart - siStart;
-                                    if (siEnd + moveBack > sjEnd)
-                                        get<1>(newGce) = siEnd + moveBack;
-                                    else
-                                        get<1>(newGce) = sjEnd;
-                                    if (moveBack < 0) {
-                                        spdlog::get("console")->error("{}:{}: something error", __FILE__, __LINE__);
-                                    }
+                                c.linkIntervalDuplex[linkId][newGce].emplace(send, send + transmitDelay, streamId);
+                                if (*iter != newGce) {
+                                    c.linkIntervalDuplex[linkId][newGce].insert(c.linkIntervalDuplex[linkId][*iter].begin(),
+                                                                                c.linkIntervalDuplex[linkId][*iter].end());
+                                    c.linkIntervalDuplex[linkId].erase(*iter);
+                                    iter = c.linkInterval[linkId].erase(iter);
+                                    iter = c.linkInterval[linkId].insert(iter, newGce);
                                 }
                             }
-                            if (gsv[1] == '1')  // gsv == "01000000" || gsv == "01100000"
-                                get<2>(newGce) = "01100000";
 
+                            if (get<2>(*iter)[1] == '1')  // gsv == "01000000" || gsv == "01100000"
+                                get<2>(newGce) = "01100000";
+                            hasMoveBack = true;
                         } else {
-                            c.linkInterval[linkId].emplace(newGce);
-                            c.linkIntervalDuplex[linkId][newGce].emplace(send, send + transmitDelay, streamId);
-//                            c.p5TrafficOffsets[streamId][j][i] = std::make_tuple(send, send % c.linkHyperperiod[linkId], transmitDelay);
+                            if (!c.linkInterval[linkId].contains(newGce))
+                                c.linkInterval[linkId].emplace(newGce);
+                            auto tmp = std::make_tuple(send, send + transmitDelay, streamId);
+                            if (!(c.linkIntervalDuplex[linkId].contains(newGce) && c.linkIntervalDuplex[linkId][newGce].contains(tmp)))
+                                c.linkIntervalDuplex[linkId][newGce].emplace(send, send + transmitDelay, streamId);
                             break;
                         }
-                        c.totalCache += moveBack;
-                        send += moveBack;
-                        auto next = ++iter;
-                        iter--;
-                        if (moveBack > 0) {
-                            while (next != c.linkInterval[linkId].end()) {
-                                /* if new interval don't collision with next, break */
-                                if (get<1>(newGce) + IFG_TIME <= get<0>(*next)) {
-                                    if (get<1>(newGce) + IFG_TIME == get<0>(*next)) {
-                                        get<1>(newGce) = get<0>(*next);
-                                        next++;
-                                    }
-                                    break;
-                                } else {
-                                    /* collision with next P6 */
-                                    if (get<2>(*next)[1] == '1')  // gsv == "01000000" || gsv == "01100000"
-                                        return false;
-                                        /* collision with next P5 */
-                                    else {
-                                        moveBack = get<1>(newGce) + IFG_TIME - get<0>(*next);
-                                        /* extension the sjEnd time of newGce */
-                                        get<1>(newGce) = get<1>(*next) + moveBack;
-                                        ++next;
-                                        c.totalCache += moveBack;
-                                    }
-                                }
-                            }
-                        }
-                        c.linkIntervalDuplex[linkId][newGce].emplace(send, send + transmitDelay, streamId);
-                        auto t = iter;
-                        while (t != next) {
-                            c.linkIntervalDuplex[linkId][newGce].insert(c.linkIntervalDuplex[linkId][*t].begin(),
-                                                                        c.linkIntervalDuplex[linkId][*t].end());
-                            c.linkIntervalDuplex[linkId].erase(*t++);
-                        }
-                        iter = c.linkInterval[linkId].erase(iter, next);
-                        c.linkInterval[linkId].insert(iter, newGce);
-                        break;
                     }
 
-                    c.p5TrafficOffsets[streamId][j][i] = std::make_tuple(send, send % c.linkHyperperiod[linkId], transmitDelay);
-
+                    c.p5TrafficOffsets[streamId][j][i] = std::make_tuple(send, send % c.linkHyperperiod[linkId],
+                                                                         transmitDelay);
+                    if (i + 1 == route.size()) {
+                        send = get<0>(c.p5TrafficOffsets[streamId][j][i - 1]) +
+                               get<2>(c.p5TrafficOffsets[streamId][j][i - 1]) +
+                               route[i - 1]->getPropSpeed() * route[i - 1]->getLen();
+                        c.p5TrafficOffsets[streamId][j][i + 1] = std::make_tuple(send, 0, 0);
+                    }
                 }
             }
         }
     }
     /* merge the neighboured intervals*/
-    for (auto& [_, intervals]: c.linkInterval) {
-//        auto prev = intervals.end();
-//        for (auto iter = intervals.begin(); iter != intervals.end(); ++iter) {
-//            if (prev != intervals.end() && get<1>(*prev) + IFG_TIME >= get<0>(*iter)) {
-//
-//            }
-//            /* P5 before P6 */
-//            if (get<2>(*prev) == "00100000" && get<2>(*iter) == "01000000"
-//                && get<1>(*prev) + IFG_TIME > get<0>(*iter)) {
-//                return false;
-//            }
-//            if (prev != intervals.end()) {
-//                if (get<1>(*prev) + IFG_TIME == get<0>(*iter)) {
-//                    std::string gsv = get<2>(*prev);
-//                    if (gsv != get<2>(*iter))
-//                        gsv = "0110000";
-//                    auto tmp = std::make_tuple(get<0>(*prev), get<1>(*iter), gsv);
-//                    iter = intervals.erase(prev, iter.operator++());
-//                    if (iter != intervals.end())
-//                        iter = intervals.insert(iter.operator--(), tmp);
-//                    else
-//                        iter = intervals.insert(intervals.end(), tmp);
-//                } else if (get<1>(*prev) + IFG_TIME >= get<0>(*iter)) {
-//                    std::string gsv = get<2>(*prev);
-//                    if (gsv == "00100000" && get<2>(*iter) == "00100000")
-//                        gsv =
-//                }
-//            }
-//            prev = iter;
-//
-//        }
-        c.totalGcl += intervals.size();
+    for (auto &[linkId, intervals]: c.linkInterval) {
+        c.totalGcl += (intervals.size() * 2 + 1);
+        auto prev = intervals.end();
+        for (auto iter = intervals.begin(); iter != intervals.end(); ++iter) {
+            if (prev != intervals.end()) {
+                if (get<1>(*prev) + IFG_TIME >= get<0>(*iter)) {
+                    spdlog::get("console")->error("{}:{}: prev[second] + IFG = {}, iter[first] = {}", __FILE__, __LINE__, get<1>(*prev) + IFG_TIME, get<0>(*iter));
+                    spdlog::get("console")->error("{}:{}: prev[streamId] = {}, iter[streamId] = {}", __FILE__, __LINE__, get<2>(*c.linkIntervalDuplex[linkId][*prev].begin()), get<2>(*c.linkIntervalDuplex[linkId][*iter].begin()));
+                }
+            }
+        }
     }
     /* get jitter of p5 traffic */
-    for (auto& [streamId, sendIdxs]: c.p5TrafficOffsets) {
+    for (auto &[streamId, sendIdxs]: c.p5TrafficOffsets) {
         vector<sched_time_t> e2e(sendIdxs.size(), 0);
-        for (auto& [sendIdx, hop]: sendIdxs) {
-            e2e[sendIdx] = get<0>(hop[hop.size()]) - get<0>(hop[0]);
+        for (auto &[sendIdx, hop]: sendIdxs) {
+            e2e[sendIdx] = get<0>(hop[hop.size() - 1]) - get<0>(hop[0]);
         }
         double totalDiff = 0;
         for (size_t i = 0; i < e2e.size(); ++i) {
             if (i > 0)
                 totalDiff += std::abs(e2e[i] - e2e[i - 1]);
         }
+        if (totalDiff == 0)
+            c.cachedStreamJitter[streamId] = 0;
         c.cachedStreamJitter[streamId] = totalDiff / (e2e.size() - 1);
     }
     c.maxJitter = std::make_pair(0, -1);
@@ -498,11 +492,11 @@ void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd
         p.offsets[input->getStreamPos(streamsInGroup[0])] = 0;
         for (size_t i = 1; i < streamsInGroup.size(); ++i) {
             stream_id_t streamId = streamsInGroup[i];
-            const auto& stream = input->getStream(streamId);
+            const auto &stream = input->getStream(streamId);
             int pos = input->getStreamPos(streamId);
             sched_time_t upperBound = stream->getPeriod()
                                       - stream->getSrc()->getDpr()
-                                      - stream->getLength() * stream->getSrcTransmitDelay();
+                                      - stream->getSrcTransmitDelay();
             if (stream->getPcp() == P6) {
                 sched_time_t tmp = stream->getDeliveryGuarantee()->getLowerVal()
                                    - stream->getRoutes()[p.routes[input->getStreamPos(streamId)]]->getE2E();
@@ -549,6 +543,7 @@ bool MoGaSolver::eval_solution(const TtStreams &p, MyMiddleCost &c) {
             return false;
         if (!scheduleP5(p, c))
             return false;
+        c.groupSize = 1.0 / static_cast<double>(c.groupStream.size());
     }
     return true;
 }
@@ -570,12 +565,12 @@ TtStreams MoGaSolver::mutate(
     const double mu = 0.2 * shrink_scale; // mutation radius (adjustable)
     X_new = X_base;
     for (const auto &[streamId, pos]: input->streamsId) {
-        const auto& stream = input->streams[pos];
+        const auto &stream = input->streams[pos];
         if (stream->getRoutes().size() != 1) {
             do {
                 X_new.routes[pos] += stream->getRoutes().size() * rnd01();
-            } while (stream->getRoutes()[X_new.routes[pos]]->getE2E()
-                     > stream->getDeliveryGuarantee()->getLowerVal());
+                X_new.routes[pos] %= stream->getRoutes().size();
+            } while (stream->getRoutes()[X_new.routes[pos]]->getE2E() > stream->getDeliveryGuarantee()->getLowerVal());
         } else {
             X_new.routes[pos] = 0;
         }
@@ -584,7 +579,7 @@ TtStreams MoGaSolver::mutate(
         X_new.offsets[input->getStreamPos(streamsInGroup[0])] = 0;
         for (size_t i = 1; i < streamsInGroup.size(); ++i) {
             stream_id_t streamId = streamsInGroup[i];
-            const auto& stream = input->getStream(streamId);
+            const auto &stream = input->getStream(streamId);
             int pos = input->getStreamPos(streamId);
             sched_time_t upperBound = X_base.upperBounds[pos];
             if (stream->getPcp() == P6) {
@@ -617,8 +612,11 @@ TtStreams MoGaSolver::mutate(
 
 TtStreams MoGaSolver::crossover(const TtStreams &X1, const TtStreams &X2, const std::function<double(void)> &rnd01) {
     TtStreams X_new;
-    X_new = X1;
-    double rRoute  = rnd01();
+    if (X1.groupStream.size() > X2.groupStream.size())
+        X_new = X1;
+    else
+        X_new = X2;
+    double rRoute = rnd01();
     double rOffset = rnd01();
     for (const auto &[streamId, pos]: input->streamsId) {
         /* generate a route index for offspring */
@@ -627,12 +625,11 @@ TtStreams MoGaSolver::crossover(const TtStreams &X1, const TtStreams &X2, const 
         if (stream->getRoutes().size() != 1) {
             while (true) {
                 double t = rRoute * X1.routes[pos] + (1.0 - rRoute) * X2.routes[pos];
-                route = t;
-                route %= stream->getRoutes().size();
+                route_t route = t;
                 if (stream->getRoutes()[route]->getE2E() >
                     stream->getDeliveryGuarantee()->getLowerVal()) {
                     rRoute = rnd01();
-                } else {
+                } else if (X_new.routes[pos] < stream->getRoutes().size()) {
                     X_new.routes[pos] = route;
                     break;
                 }
@@ -640,38 +637,44 @@ TtStreams MoGaSolver::crossover(const TtStreams &X1, const TtStreams &X2, const 
         } else {
             X_new.routes[pos] = 0;
         }
-        /* generate a send offset index for offspring */
-        sched_time_t upperBound = stream->getPeriod()
-                                  - stream->getSrc()->getDpr()
-                                  - stream->getLength() * stream->getSrcTransmitDelay();
-        if (stream->getPcp() == P6) {
-            int64_t tmp = stream->getDeliveryGuarantee()->getLowerVal() -
-                          stream->getRoutes()[route]->getE2E();
-            upperBound = std::min(upperBound, tmp);
-        }
-        X_new.upperBounds[pos] = upperBound;
-        double offset = 0;
-        while (true) {
-            offset = rOffset * X1.offsets[pos] + (1.0 - rOffset) * X2.offsets[pos];
-            if (X1.offsets[pos] > upperBound && X2.offsets[pos] > upperBound) {
-                offset = std::min(X1.offsets[pos], X2.offsets[pos]) * rOffset;
-            } else {
-                if (offset > upperBound)
-                    rOffset = rnd01();
+    }
+    for (const auto &[groupId, streamsInGroup]: X_new.groupStream) {
+        X_new.offsets[input->getStreamPos(streamsInGroup[0])] = 0;
+        for (size_t i = 1; i < streamsInGroup.size(); ++i) {
+            stream_id_t streamId = streamsInGroup[i];
+            const auto &stream = input->getStream(streamId);
+            int pos = input->getStreamPos(streamId);
+            sched_time_t upperBound = X_new.upperBounds[pos];
+            if (stream->getPcp() == P6) {
+                sched_time_t tmp = stream->getDeliveryGuarantee()->getLowerVal()
+                                   - stream->getRoutes()[X_new.routes[pos]]->getE2E();
+                upperBound = std::min(upperBound, tmp);
+                X_new.upperBounds[pos] = upperBound;
+            }
+            double offset = 0;
+            while (true) {
+                if (X1.offsets[pos] > upperBound && X2.offsets[pos] > upperBound)
+                    offset = rOffset * X1.offsets[pos] + rOffset * X2.offsets[pos];
                 else
+                    offset = rOffset * X1.offsets[pos] + (1.0 - rOffset) * X2.offsets[pos];
+                if (offset < upperBound) {
+                    X_new.offsets[pos] = offset;
                     break;
+                } else {
+                    rOffset = rnd01();
+                }
             }
         }
-        X_new.offsets[pos] = offset;
     }
     return X_new;
 }
 
 vector<double> MoGaSolver::calculate_MO_objectives(const GA_Type::thisChromosomeType &X) {
     return {
-            X.middle_costs.totalCache,
+            X.middle_costs.totalGcl,
             X.middle_costs.maxJitter.second,
-            X.middle_costs.totalGcl
+            X.middle_costs.groupSize,
+            X.middle_costs.totalCache
     };
 }
 
@@ -697,28 +700,30 @@ void MoGaSolver::save_results(GA_Type &ga_obj, const std::string &path, int32_t 
     size_t second = path.find('/', first);
     std::string topology = path.substr(first, second - first);
 
-    resultSummaryPath.append(topology+ "_result_summary.txt");
+    resultSummaryPath.append(topology + "_result_summary.txt");
     std::fstream resultSummary(resultSummaryPath, std::fstream::out | std::fstream::app);
     spdlog::get("console")->info("file: {}, {}", resultSummaryPath, strerror(errno));
 //    std::ofstream out_file_offset_route(result_offset_route);
     if (runId == 0) {
-        resultSummary << "------+---------+--------------------+--------------------+--------------------" << std::endl;
-        resultSummary <<        std::setw(6) << "run_id"
+        resultSummary << "------+---------+--------------------+--------------------+--------------------+--------------------" << std::endl;
+        resultSummary << std::setw(6) << "run_id"
                       << "|" << std::setw(9) << "pareto_id"
                       << "|" << std::setw(20) << "jitter"
                       << "|" << std::setw(20) << "total_cache"
-                      << "|" << std::setw(20) << "total_gcl" << "|" << std::endl;
-        resultSummary << "------|---------|--------------------|--------------------|--------------------" << std::endl;
+                      << "|" << std::setw(20) << "total_gcl"
+                      << "|" << std::setw(20) << "group_size" << std::endl;
+        resultSummary << "------|---------|--------------------|--------------------|--------------------+--------------------" << std::endl;
     }
 
     for (unsigned int i: paretoFrontIndices) {
         /* set flow offset and route index */
         auto &X = ga_obj.last_generation.chromosomes[i];
-        resultSummary <<        std::setw(6) << runId
+        resultSummary << std::setw(6) << runId
                       << "|" << std::setw(9) << i
                       << "|" << std::setw(20) << X.middle_costs.maxJitter.second
                       << "|" << std::setw(20) << X.middle_costs.totalCache
-                      << "|" << std::setw(20) << X.middle_costs.totalGcl << std::endl;
+                      << "|" << std::setw(20) << X.middle_costs.totalGcl
+                      << "|" << std::setw(20) << std::round(1.0 / X.middle_costs.groupSize) << std::endl;
 
         SaveSolution saveSolution(input, &X.genes, &X.middle_costs);
         saveSolution.saveGCL();
