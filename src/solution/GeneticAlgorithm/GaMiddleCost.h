@@ -75,7 +75,7 @@ struct MyMiddleCost {
 
     double total_transmit;
 
-    double v_transmit;
+    double groupSize;
 
     double totalCache = 0;
 
