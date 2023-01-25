@@ -72,10 +72,11 @@ void SaveSolution::saveGCL() {
     /* map<link_id_t, set<std::tuple<sched_time_t, sched_time_t, bool>>> linkInterval; */
     for (const auto& [linkId, intervals]: c->linkInterval) {
         for (auto &interval: intervals) {
-            std::vector<gate_event_t> gateStatesValue(8, GATE_CLOSE);
             input->links[linkId]->getSrcPort()->addGateControlEntry(std::make_shared<GateControlEntry>(interval));
         }
     }
+    for (auto &link: input->links)
+        link.second->sortGCL();
 }
 
 void SaveSolution::saveGCL(const std::string &gclFileLocation) {
@@ -102,7 +103,7 @@ void SaveSolution::saveSwPortSchedule(const std::string &schedFileLocation) {
             for (const auto &[linkId, link]: input->links) {
                 if (link->getSrcNode() == sw
                     && link->getSrcPort()->getId() == ports[i]->getId()
-                    && !link->getSrcPort()->getGateControlList().empty()) {
+                    && !ports[i]->getGateControlList().empty()) {
                     pugi::xml_node xport = xswitch.append_child("port");
                     pugi::xml_attribute xportId = xport.append_attribute("id");
                     xportId.set_value(i);
@@ -113,6 +114,9 @@ void SaveSolution::saveSwPortSchedule(const std::string &schedFileLocation) {
                     sched_time_t cur = 0;
                     for (const auto &gce: link->getSrcPort()->getGateControlList()) {
                         sched_time_t gap = gce->getStartTime() - cur;
+                        if (gap < 0) {
+                            spdlog::get("console")->error("{}:{}: some error", __FILE__, __LINE__);
+                        }
                         /* gap */
                         GateControlEntry gateControlEntry;
                         pugi::xml_node xallOpenEntry = xschedule.append_child("entry");
@@ -241,14 +245,14 @@ void SaveSolution::saveIni(const std::string &route_file,
     output << R"(**.frequency = 1GHz)" << std::endl;
     output << "# Switches" << std::endl;
 
-    output << R"(**.switch*.processingDelay.delay = 30000ns)" << std::endl;
+    output << R"(**.switch*.processingDelay.delay = 20000ns)" << std::endl;
 
     output << R"(**.filteringDatabase.database = xmldoc("xml/)" << route_file << R"(", "/filteringDatabases/"))"
            << std::endl;
     for (const auto &sw: input->swList) {
         auto ports = std::dynamic_pointer_cast<Switch>(sw)->getPorts();
         for (int i = 0; i < ports.size(); ++i) {
-            if (isPortInUse(ports[i])) {
+            if (!ports[i]->getGateControlList().empty()) {
                 output << "**." << sw->getName() << ".eth[" << std::to_string(i)
                        << R"(].queue.gateController.initialSchedule = xmldoc("xml/)" << gcl_file;
                 output << R"(", "/schedules/switch[@name=')" << sw->getName() << R"(']/port[@id=')"
@@ -265,21 +269,9 @@ void SaveSolution::saveIni(const std::string &route_file,
 //        output << R"(**.sw*.eth[*].mac.enablePreemptingFrames = false)" << std::endl;
 
     for (auto &es: input->esList) {
-        if (isPortInUse(std::dynamic_pointer_cast<EndSystem>(es)->getPort())) {
+        if (!std::dynamic_pointer_cast<EndSystem>(es)->getPort()->getGateControlList().empty()) {
             output << "**." << es->getName() << R"(.trafGenSchedApp.initialSchedule = xmldoc("xml/)"
                    << std::to_string(solution_id) << "_" << es->getName() << R"(.xml"))" << std::endl;
         }
     }
-}
-
-bool SaveSolution::isPortInUse(const std::shared_ptr<Port>& port) {
-    for (const auto &[streamId, pos]: input->streamsId) {
-        auto stream = input->streams[pos];
-        route_t routeId = p->routes[pos];
-        for (const auto &link: stream->getRoutes()[routeId]->getLinks()) {
-            if (link->getSrcPort()->getId() == port->getId())
-                return true;
-        }
-    }
-    return false;
 }

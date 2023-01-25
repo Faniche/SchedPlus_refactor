@@ -21,7 +21,6 @@ class SaveSolution {
 
     std::string topology;
 
-    bool isPortInUse(const std::shared_ptr<Port>& port);
 public:
 
     SaveSolution(const std::shared_ptr<Input> &_input,
