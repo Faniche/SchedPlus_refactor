@@ -62,7 +62,8 @@ int main(int argc, char **argv) {
         if (prev != setPairs.end() && prev->second == iter->first) {
             auto tmp = std::make_pair(prev->first, iter->second);
             iter = setPairs.erase(prev, iter.operator++());
-            iter = setPairs.insert(iter.operator--(), tmp);
+            iter = setPairs.insert(iter, tmp);
+            std::cout << iter->first << ", " << iter->second << std::endl;
         }
         prev = iter;
     }
