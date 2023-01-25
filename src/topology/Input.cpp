@@ -13,12 +13,108 @@ void Input::setHyperPeriod() {
     }
 }
 
+int Input::getRandInt(int min, int max) {
+    std::random_device randomDevice;
+    std::default_random_engine generator(randomDevice());
+    std::uniform_int_distribution<int> randInteger;
+    std::uniform_int_distribution<int>::param_type param(min, max);
+    randInteger.param(param);
+    return randInteger(generator);
+}
+
+
+void Input::setDeliveryGuarantee(std::shared_ptr<Stream> stream) {
+    switch (stream->getPcp()) {
+        case P7: {
+            // TODO
+        }
+        case P6: {
+            /* unit: ns*/
+            stream->setDeliveryGuarantee(
+                    std::make_unique<DeliveryGuarantee>(DDL, stream->getPeriod())
+            );
+            break;
+        }
+        case P5: {
+            /* Typically less than 90% of period. */
+            /* unit: ns*/
+            stream->setDeliveryGuarantee(
+                    std::make_unique<DeliveryGuarantee>(E2E, stream->getPeriod() / 10)
+            );
+            break;
+        }
+        case P4: {
+            // TODO
+        }
+        case P3: {
+            // TODO
+        }
+        case P2: {
+            // TODO
+        }
+        case P1: {
+            // TODO
+        }
+        default: {
+            stream->setDeliveryGuarantee(
+                    std::make_unique<DeliveryGuarantee>()
+            );
+        }
+    }
+}
+
+
+void Input::saveStreams(const std::string &streamFilePath) {
+    std::string file_path = streamFilePath;
+    file_path.append("streams.json");
+    std::ofstream oss(file_path);
+    nlohmann::json jStreams;
+    for (const auto &stream: streams) {
+        nlohmann::json jstream;
+        jstream["id"] = stream->getId();
+        jstream["period"] = stream->getPeriod();
+        jstream["length"] = stream->getLength();
+        jstream["pcp"] = stream->getPcp();
+        jstream["src"] = stream->getSrc()->getName();
+        jstream["dest"] = stream->getDest()->getName();
+        jStreams.push_back(jstream);
+    }
+    oss << jStreams;
+    oss.close();
+}
+
+
 void Input::setNodesAndLinks() {
     vSetNodesAndLinks();
 }
 
-void Input::setStreams(uint32_t streamsNum) {
-    vSetStreams(streamsNum);
+void Input::setStreams(size_t streamsNum) {
+    Graph graph(nodes.size());
+    graph.initGraph(nodeIdMap, links);
+    for (size_t i = 0; i < streamsNum; ++i) {
+        stream_id_t streamId = i + 1;
+        node_id_t src, dest;
+        do {
+            src  = esList[getRandInt(0, esList.size() - 1)]->getId();
+            dest = esList[getRandInt(0, esList.size() - 1)]->getId();
+        } while (src == dest);
+        pcp_t pcp = i < streamsNum * 0.75 ? P6 : P5;
+        auto stream = std::make_shared<Stream>(
+                streamId,
+                Stream::getRandomPeriod(pcp),
+                Stream::getRandomFrameLength(pcp),
+                static_cast<pcp_t>(pcp),
+                nodeIdMap[src],
+                nodeIdMap[dest]
+        );
+        setDeliveryGuarantee(stream);
+        streamsGroupByPcp[pcp].push_back(streamId);
+        getAllRoutes(stream, graph);
+        streams.push_back(stream);
+    }
+
+    for (int i = 0; i < streams.size(); ++i)
+        streamsId[streams[i]->getId()] = i;
     setHyperPeriod();
 }
 
@@ -38,43 +134,7 @@ void Input::setStreams(const std::string& streamFilePath) {
         auto stream = std::make_shared<Stream>(
                 id, period, length, static_cast<pcp_t>(pcp), nodeNameMap[src], nodeNameMap[dest]
         );
-        switch (pcp) {
-            case P7: {
-                // TODO
-            }
-            case P6: {
-                /* unit: ns*/
-                stream->setDeliveryGuarantee(
-                        std::make_unique<DeliveryGuarantee>(DDL, stream->getPeriod())
-                );
-                break;
-            }
-            case P5: {
-                /* Typically less than 90% of period. */
-                /* unit: ns*/
-                stream->setDeliveryGuarantee(
-                        std::make_unique<DeliveryGuarantee>(E2E, stream->getPeriod() / 10)
-                );
-                break;
-            }
-            case P4: {
-                // TODO
-            }
-            case P3: {
-                // TODO
-            }
-            case P2: {
-                // TODO
-            }
-            case P1: {
-                // TODO
-            }
-            default: {
-                stream->setDeliveryGuarantee(
-                        std::make_unique<DeliveryGuarantee>()
-                );
-            }
-        }
+        setDeliveryGuarantee(stream);
         streamsGroupByPcp[pcp].push_back(id);
         getAllRoutes(stream, graph);
         streams.push_back(stream);

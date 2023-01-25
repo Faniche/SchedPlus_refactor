@@ -10,6 +10,7 @@
 #include <memory>
 #include <utility>
 #include <fstream>
+#include <random>
 #include "../components/node/Node.h"
 #include "../components/link/DirectedLink.h"
 #include "../components/stream/Stream.h"
@@ -20,9 +21,14 @@ class Input {
 private:
     virtual void vSetNodesAndLinks() = 0;
 
-    virtual void vSetStreams(uint32_t streamsNu) = 0;
+//    virtual void vSetStreams(uint32_t streamsNu) = 0;
 
     void setHyperPeriod();
+
+    int getRandInt(int min, int max);
+
+    void setDeliveryGuarantee(std::shared_ptr<Stream> stream);
+
 public:
     std::vector<std::shared_ptr<Node>> nodes;
     std::vector<std::shared_ptr<Node>> esList;
@@ -35,9 +41,11 @@ public:
     std::map<std::string, std::shared_ptr<Node>> nodeNameMap;
     sched_time_t hyperPeriod = 0;
 
+    void saveStreams(const std::string& streamFilePath);
+
     void setNodesAndLinks();
 
-    void setStreams(uint32_t streamsNum);
+    void setStreams(size_t streamsNum);
 
     void setStreams(const std::string& streamFilePath);
 
