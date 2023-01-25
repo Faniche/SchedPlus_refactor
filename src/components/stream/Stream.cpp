@@ -112,3 +112,80 @@ const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &Stream::getLi
 void Stream::setFramesOffset(size_t idx, sched_time_t offset) {
     frames[idx]->setOffset(offset);
 }
+
+const std::vector<int> Stream::randPeriod{1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 16, 18, 20};
+
+sched_time_t Stream::getRandomPeriod(pcp_t pcp) {
+    static std::random_device randomDevice;
+    static std::default_random_engine engine(randomDevice());
+    static std::uniform_int_distribution<uint8_t> randFramePeriod(0, randPeriod.size() - 1);
+    int idx = randFramePeriod(engine);
+    sched_time_t a = randPeriod[idx];
+    switch (pcp) {
+        case P5:
+            // 5                Cyclic                  2ms-20ms
+            while (a == 1) a = randPeriod[randFramePeriod(engine)];
+            //     μs     ns
+            a *= (1000 * 1000);
+            break;
+        case P6:
+            // 6                Isochronous             100μs-2ms
+            //     μs    ns
+            a *= (100 * 1000);
+            break;
+        case P7:
+            // 7 (highest)      Network control         50ms-1s
+            //          μs     ns
+            a *= (50 * 1000 * 1000);
+            break;
+        default:
+            a = 10000000;
+    }
+    return a;
+}
+
+sched_time_t Stream::getRandomFrameLength(pcp_t pcp) {
+    static std::random_device randomDevice;
+    static std::default_random_engine engine(randomDevice());
+    static std::uniform_int_distribution<uint16_t> randFrameLen;
+    static std::uniform_int_distribution<uint16_t>::param_type paramFrameLenP0(300, 1500);
+    static std::uniform_int_distribution<uint16_t>::param_type paramFrameLenP1(1000, 1500);
+    static std::uniform_int_distribution<uint16_t>::param_type paramFrameLenP2(500, 1500);
+    static std::uniform_int_distribution<uint16_t>::param_type paramFrameLenP3(100, 1500);
+    static std::uniform_int_distribution<uint16_t>::param_type paramFrameLenP4(100, 200);
+    static std::uniform_int_distribution<uint16_t>::param_type paramFrameLenP5(50, 1000);
+    static std::uniform_int_distribution<uint16_t>::param_type paramFrameLenP6(50, 100);
+    static std::uniform_int_distribution<uint16_t>::param_type paramFrameLenP7(50, 500);
+    switch (pcp) {
+        case P0:
+            randFrameLen.param(paramFrameLenP0);
+            break;
+        case P1:
+            randFrameLen.param(paramFrameLenP1);
+            break;
+        case P2:
+            randFrameLen.param(paramFrameLenP2);
+            break;
+        case P3:
+            randFrameLen.param(paramFrameLenP3);
+            break;
+        case P4:
+            randFrameLen.param(paramFrameLenP4);
+            break;
+        case P5:
+            randFrameLen.param(paramFrameLenP5);
+            break;
+        case P6:
+            randFrameLen.param(paramFrameLenP6);
+            break;
+        case P7:
+            randFrameLen.param(paramFrameLenP7);
+            break;
+    }
+    sched_time_t a = randFrameLen(engine);
+//    a -= a % 10;
+    a += HEADER_LEN;
+//    if (a < 80)
+//        a = 80;
+    return a;
+}

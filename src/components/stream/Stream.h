@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <map>
+#include <random>
 #include "../../type.h"
 #include "DeliveryGuarantee.h"
 #include "../node/Node.h"
@@ -37,6 +38,7 @@ protected:
     std::vector<std::shared_ptr<Frame>> frames;
     std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> linkFrames;
 
+    static const std::vector<int> randPeriod;
 public:
     Stream(stream_id_t id, sched_time_t period, uint32_t length, pcp_t pcp, std::shared_ptr<Node> &src, std::shared_ptr<Node> &dest);
 
@@ -81,6 +83,10 @@ public:
     [[nodiscard]] const std::map<std::shared_ptr<DirectedLink>, std::vector<Frame>> &getLinkFrames() const;
 
     void setFramesOffset (size_t idx, sched_time_t offset);
+
+    static sched_time_t getRandomPeriod(pcp_t pcp);
+
+    static sched_time_t getRandomFrameLength(pcp_t pcp);
 
 };
 
