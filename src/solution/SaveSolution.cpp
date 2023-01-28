@@ -16,14 +16,21 @@ SaveSolution::SaveSolution(const std::shared_ptr<Input> &_input,
 void SaveSolution::saveRoute(const std::string &routeFileLocation) {
     map<node_id_t, vector<link_id_t>> swLinks;
     c->linkFlows.clear();
+//    std::cout << routeFileLocation << std::endl;
     for (const auto &[streamId, pos]: input->streamsId) {
         auto const &stream = input->getStream(streamId);
+//        std::cout << "streamId: " << streamId << std::endl << "route: ";
         const auto &route = input->getRouteLinks(streamId, p->routes[pos]);
         for (hop_t i = 0; i < route.size(); ++i) {
             link_id_t linkId = route[i]->getId();
             c->linkFlows[linkId].emplace_back(streamId, i);
+//            std::cout << input->links[linkId]->getSrcNode()->getName() << " -> ";
         }
+//        std::cout << input->links[route[route.size() - 1]->getId()]->getDestNode()->getName();
+//        std::cout << std::endl;
+        std::cout << "route from stream: " << stream->getRoutes()[p->routes[pos]]->toString() << std::endl;
     }
+//    std::cout << "======================================================" << std::endl;
     for (const auto &sw: input->swList) {
         for (const auto &[linkId, streamIds]: c->linkFlows) {
             if (input->links[linkId]->getSrcNode() == sw) {
@@ -37,16 +44,16 @@ void SaveSolution::saveRoute(const std::string &routeFileLocation) {
     xdec.append_attribute("encoding").set_value("utf-8");
     pugi::xml_node xdbs = xdoc.append_child("filteringDatabases");
 
-    /* iterate all switchs */
+    /* iterate all switches */
     for (const auto &[nodeId, linksId]: swLinks) {
-        auto _switch = input->nodeIdMap[nodeId];
+        auto sw = input->nodeIdMap[nodeId];
         pugi::xml_node xdb = xdbs.append_child("filteringDatabase");
         pugi::xml_attribute xsw_id = xdb.append_attribute("id");
-        xsw_id.set_value(_switch->getName().c_str());
+        xsw_id.set_value(sw->getName().c_str());
         pugi::xml_node xstatic = xdb.append_child("static");
         pugi::xml_node xforward = xstatic.append_child("forward");
         /* iterate a switch's ports */
-        auto ports = std::dynamic_pointer_cast<Switch>(_switch)->getPorts();
+        auto ports = std::dynamic_pointer_cast<Switch>(sw)->getPorts();
         for (auto &linkId: linksId) {
             for (const auto &[streamId, hop]: c->linkFlows[linkId]) {
                 pugi::xml_node xmulticast_addr = xforward.append_child("multicastAddress");
@@ -66,17 +73,51 @@ void SaveSolution::saveRoute(const std::string &routeFileLocation) {
 
 void SaveSolution::saveGCL() {
     for (const auto& link: input->links) {
-        if (link.second->getSrcPort()->getGateControlList().empty()) continue;
         link.second->clearGateControlEntry();
+        if (!link.second->getSrcPort()->getGateControlList().empty())
+            spdlog::get("console")->error("{}:{}: linkId: gcl not empty", __FILE__, __LINE__);
+    }
+    for (const auto& link: input->links) {
+        link.second->getSrcPort()->clearGCL();
+        if (!link.second->getSrcPort()->getGateControlList().empty())
+            spdlog::get("console")->error("{}:{}: linkId: gcl not empty", __FILE__, __LINE__);
+    }
+    for (auto sw: input->swList) {
+        auto ports = std::dynamic_pointer_cast<Switch>(sw)->getPorts();
+        for (auto & port : ports) {
+            port->clearGCL();
+            if (!port->getGateControlList().empty())
+                spdlog::get("console")->error("{}:{}: linkId: gcl not empty", __FILE__, __LINE__);
+        }
     }
     /* map<link_id_t, set<std::tuple<sched_time_t, sched_time_t, bool>>> linkInterval; */
     for (const auto& [linkId, intervals]: c->linkInterval) {
+        if (input->nodeIdMap[linkId.first]->getNodeType() == END_SYSTEM)    continue;
+        if (!input->links[linkId]->getSrcPort()->getGateControlList().empty()) {
+            spdlog::get("console")->error("{}:{}: linkId: [{}.port[{}]-{}], gcl not empty", __FILE__, __LINE__, input->nodeIdMap[linkId.first]->getName(), input->links[linkId]->getSrcPort()->getId(), input->nodeIdMap[linkId.second]->getName());
+            input->links[linkId]->getSrcPort()->clearGCL();
+            if (!input->links[linkId]->getSrcPort()->getGateControlList().empty()) {
+                spdlog::get("console")->error("{}:{}: linkId: [{}-{}], gcl not empty", __FILE__, __LINE__, input->nodeIdMap[linkId.first]->getName(), input->nodeIdMap[linkId.second]->getName());
+            }
+        }
+
+//        spdlog::get("console")->debug("{}:{}: linkId: [{}-{}], intervals.size: {}", __FILE__, __LINE__, linkId.first, linkId.second, intervals.size());
         for (auto &interval: intervals) {
             input->links[linkId]->getSrcPort()->addGateControlEntry(std::make_shared<GateControlEntry>(interval));
         }
+//        spdlog::get("console")->debug("{}:{}: linkId: [{}-{}], gcl.size: {}", __FILE__, __LINE__, input->nodeIdMap[linkId.first]->getName(), input->nodeIdMap[linkId.second]->getName(), input->links[linkId]->getSrcPort()->getGateControlList().size());
+        if (intervals.size() != input->links[linkId]->getSrcPort()->getGateControlList().size())
+            spdlog::get("console")->error("{}:{}: linkId: [{}-{}], gcl.size: {}", __FILE__, __LINE__, input->nodeIdMap[linkId.first]->getName(), input->nodeIdMap[linkId.second]->getName(), input->links[linkId]->getSrcPort()->getGateControlList().size());
     }
     for (auto &link: input->links)
-        link.second->sortGCL();
+        if (link.second->getSrcPort()->getGateControlList().empty())
+            link.second->sortGCL();
+//    for (auto &sw: input->swList) {
+//        auto ports = std::dynamic_pointer_cast<Switch>(sw)->getPorts();
+//        for (int i = 0; i < ports.size(); ++i) {
+//            spdlog::get("console")->debug("{}:{}: {}[{}].ports[{}].gcl.size = {}", __FILE__, __LINE__, sw->getId(), sw->getName(), i, ports[i]->getGateControlList().size());
+//        }
+//    }
 }
 
 void SaveSolution::saveGCL(const std::string &gclFileLocation) {
@@ -101,9 +142,11 @@ void SaveSolution::saveSwPortSchedule(const std::string &schedFileLocation) {
         auto ports = std::dynamic_pointer_cast<Switch>(sw)->getPorts();
         for (int i = 0; i < ports.size(); ++i) {
             for (const auto &[linkId, link]: input->links) {
-                if (link->getSrcNode() == sw
-                    && link->getSrcPort()->getId() == ports[i]->getId()
+                if (linkId.first == sw->getId()
+                    && link->getSrcPort() == ports[i]
                     && !ports[i]->getGateControlList().empty()) {
+                    if (!c->linkInterval.contains(linkId))
+                        spdlog::get("console")->error("{}:{}: some error", __FILE__, __LINE__);
                     pugi::xml_node xport = xswitch.append_child("port");
                     pugi::xml_attribute xportId = xport.append_attribute("id");
                     xportId.set_value(i);
@@ -112,11 +155,8 @@ void SaveSolution::saveSwPortSchedule(const std::string &schedFileLocation) {
                     std::string cycTimeStr = std::to_string(c->linkHyperperiod[linkId]) + "ns";
                     xcycle_time.set_value(cycTimeStr.c_str());
                     sched_time_t cur = 0;
-                    for (const auto &gce: link->getSrcPort()->getGateControlList()) {
-                        sched_time_t gap = gce->getStartTime() - cur;
-                        if (gap < 0) {
-                            spdlog::get("console")->error("{}:{}: some error", __FILE__, __LINE__);
-                        }
+                    for (const auto &[start, end, gsv]: c->linkInterval[linkId]) {
+                        sched_time_t gap = start - cur;
                         /* gap */
                         GateControlEntry gateControlEntry;
                         pugi::xml_node xallOpenEntry = xschedule.append_child("entry");
@@ -128,12 +168,12 @@ void SaveSolution::saveSwPortSchedule(const std::string &schedFileLocation) {
                         /* gce */
                         pugi::xml_node xentry = xschedule.append_child("entry");
                         pugi::xml_node xlen = xentry.append_child("length");
-                        wndLenStr = std::to_string(gce->getTimeIntervalValue()) + "ns";
+                        wndLenStr = std::to_string(end - start) + "ns";
                         xlen.append_child(pugi::node_pcdata).set_value(wndLenStr.c_str());
                         pugi::xml_node xbitvec = xentry.append_child("bitvector");
-                        xbitvec.append_child(pugi::node_pcdata).set_value(gce->toBitStr().c_str());
+                        xbitvec.append_child(pugi::node_pcdata).set_value(gsv.c_str());
 
-                        cur = gce->getStartTime() + gce->getTimeIntervalValue();
+                        cur = end;
                     }
                     if (cur < c->linkHyperperiod[linkId]) {
                         sched_time_t gap = c->linkHyperperiod[linkId] - cur;
