@@ -437,15 +437,6 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
     /* merge the neighboured intervals*/
     for (auto &[linkId, intervals]: c.linkInterval) {
         c.totalGcl += (intervals.size() * 2 + 1);
-        auto prev = intervals.end();
-        for (auto iter = intervals.begin(); iter != intervals.end(); ++iter) {
-            if (prev != intervals.end()) {
-                if (get<1>(*prev) + IFG_TIME >= get<0>(*iter)) {
-                    spdlog::get("console")->error("{}:{}: prev[second] + IFG = {}, iter[first] = {}", __FILE__, __LINE__, get<1>(*prev) + IFG_TIME, get<0>(*iter));
-                    spdlog::get("console")->error("{}:{}: prev[streamId] = {}, iter[streamId] = {}", __FILE__, __LINE__, get<2>(*c.linkIntervalDuplex[linkId][*prev].begin()), get<2>(*c.linkIntervalDuplex[linkId][*iter].begin()));
-                }
-            }
-        }
     }
     /* get jitter of p5 traffic */
     for (auto &[streamId, sendIdxs]: c.p5TrafficOffsets) {
@@ -738,11 +729,11 @@ void MoGaSolver::save_results(GA_Type &ga_obj, const std::string &path, int32_t 
         std::string gclFileDir = solutionPath + std::to_string(i);
         saveSolution.saveGCL(gclFileDir);
 
-        std::string route_file_name = std::to_string(i) + "_route.xml";
-        std::string gcl_file_name = std::to_string(i) + "_gcl.xml";
-        std::string ini_file = solutionPath;
-        ini_file.append(std::to_string(i) + "_" + topology + ".ini");
-        saveSolution.saveIni(route_file_name, gcl_file_name, ini_file, topology, i);
+        std::string routeFileName = std::to_string(i) + "_route.xml";
+        std::string gclFileName = std::to_string(i) + "_gcl.xml";
+        std::string iniFile = solutionPath;
+        iniFile.append(std::to_string(i) + "_" + topology + ".ini");
+        saveSolution.saveIni(routeFileName, gclFileName, iniFile, topology, i);
 
 //        std::string event_file = OUT_LOCATION_WAIT;
 //        event_file.append("/" + std::to_string(i) + "_event.txt");
