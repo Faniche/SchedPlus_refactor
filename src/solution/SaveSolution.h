@@ -37,10 +37,10 @@ public:
 
     void saveEsSchedule(const std::string &schedFileLocation);
 
-    void saveIni(const std::string &route_file,
-                 const std::string &gcl_file,
-                 const std::string &ini_file,
-                 const std::string &ned_file,
+    void saveIni(const std::string &routeFileName,
+                 const std::string &gclFileName,
+                 const std::string &iniFile,
+                 const std::string &topology,
                  size_t solution_id);
 };
 

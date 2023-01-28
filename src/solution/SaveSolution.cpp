@@ -16,21 +16,14 @@ SaveSolution::SaveSolution(const std::shared_ptr<Input> &_input,
 void SaveSolution::saveRoute(const std::string &routeFileLocation) {
     map<node_id_t, vector<link_id_t>> swLinks;
     c->linkFlows.clear();
-//    std::cout << routeFileLocation << std::endl;
     for (const auto &[streamId, pos]: input->streamsId) {
         auto const &stream = input->getStream(streamId);
-//        std::cout << "streamId: " << streamId << std::endl << "route: ";
         const auto &route = input->getRouteLinks(streamId, p->routes[pos]);
         for (hop_t i = 0; i < route.size(); ++i) {
             link_id_t linkId = route[i]->getId();
             c->linkFlows[linkId].emplace_back(streamId, i);
-//            std::cout << input->links[linkId]->getSrcNode()->getName() << " -> ";
         }
-//        std::cout << input->links[route[route.size() - 1]->getId()]->getDestNode()->getName();
-//        std::cout << std::endl;
-        std::cout << "route from stream: " << stream->getRoutes()[p->routes[pos]]->toString() << std::endl;
     }
-//    std::cout << "======================================================" << std::endl;
     for (const auto &sw: input->swList) {
         for (const auto &[linkId, streamIds]: c->linkFlows) {
             if (input->links[linkId]->getSrcNode() == sw) {
@@ -74,50 +67,16 @@ void SaveSolution::saveRoute(const std::string &routeFileLocation) {
 void SaveSolution::saveGCL() {
     for (const auto& link: input->links) {
         link.second->clearGateControlEntry();
-        if (!link.second->getSrcPort()->getGateControlList().empty())
-            spdlog::get("console")->error("{}:{}: linkId: gcl not empty", __FILE__, __LINE__);
-    }
-    for (const auto& link: input->links) {
-        link.second->getSrcPort()->clearGCL();
-        if (!link.second->getSrcPort()->getGateControlList().empty())
-            spdlog::get("console")->error("{}:{}: linkId: gcl not empty", __FILE__, __LINE__);
-    }
-    for (auto sw: input->swList) {
-        auto ports = std::dynamic_pointer_cast<Switch>(sw)->getPorts();
-        for (auto & port : ports) {
-            port->clearGCL();
-            if (!port->getGateControlList().empty())
-                spdlog::get("console")->error("{}:{}: linkId: gcl not empty", __FILE__, __LINE__);
-        }
     }
     /* map<link_id_t, set<std::tuple<sched_time_t, sched_time_t, bool>>> linkInterval; */
     for (const auto& [linkId, intervals]: c->linkInterval) {
-        if (input->nodeIdMap[linkId.first]->getNodeType() == END_SYSTEM)    continue;
-        if (!input->links[linkId]->getSrcPort()->getGateControlList().empty()) {
-            spdlog::get("console")->error("{}:{}: linkId: [{}.port[{}]-{}], gcl not empty", __FILE__, __LINE__, input->nodeIdMap[linkId.first]->getName(), input->links[linkId]->getSrcPort()->getId(), input->nodeIdMap[linkId.second]->getName());
-            input->links[linkId]->getSrcPort()->clearGCL();
-            if (!input->links[linkId]->getSrcPort()->getGateControlList().empty()) {
-                spdlog::get("console")->error("{}:{}: linkId: [{}-{}], gcl not empty", __FILE__, __LINE__, input->nodeIdMap[linkId.first]->getName(), input->nodeIdMap[linkId.second]->getName());
-            }
-        }
-
-//        spdlog::get("console")->debug("{}:{}: linkId: [{}-{}], intervals.size: {}", __FILE__, __LINE__, linkId.first, linkId.second, intervals.size());
+//        if (input->nodeIdMap[linkId.first]->getNodeType() == END_SYSTEM)    continue;
         for (auto &interval: intervals) {
             input->links[linkId]->getSrcPort()->addGateControlEntry(std::make_shared<GateControlEntry>(interval));
         }
-//        spdlog::get("console")->debug("{}:{}: linkId: [{}-{}], gcl.size: {}", __FILE__, __LINE__, input->nodeIdMap[linkId.first]->getName(), input->nodeIdMap[linkId.second]->getName(), input->links[linkId]->getSrcPort()->getGateControlList().size());
-        if (intervals.size() != input->links[linkId]->getSrcPort()->getGateControlList().size())
-            spdlog::get("console")->error("{}:{}: linkId: [{}-{}], gcl.size: {}", __FILE__, __LINE__, input->nodeIdMap[linkId.first]->getName(), input->nodeIdMap[linkId.second]->getName(), input->links[linkId]->getSrcPort()->getGateControlList().size());
     }
     for (auto &link: input->links)
-        if (link.second->getSrcPort()->getGateControlList().empty())
-            link.second->sortGCL();
-//    for (auto &sw: input->swList) {
-//        auto ports = std::dynamic_pointer_cast<Switch>(sw)->getPorts();
-//        for (int i = 0; i < ports.size(); ++i) {
-//            spdlog::get("console")->debug("{}:{}: {}[{}].ports[{}].gcl.size = {}", __FILE__, __LINE__, sw->getId(), sw->getName(), i, ports[i]->getGateControlList().size());
-//        }
-//    }
+        link.second->sortGCL();
 }
 
 void SaveSolution::saveGCL(const std::string &gclFileLocation) {
@@ -257,18 +216,18 @@ void SaveSolution::saveEsSchedule(const std::string &schedFileLocation) {
     }
 }
 
-void SaveSolution::saveIni(const std::string &route_file,
-             const std::string &gcl_file,
-             const std::string &ini_file,
-             const std::string &ned_file,
+void SaveSolution::saveIni(const std::string &routeFileName,
+             const std::string &gclFileName,
+             const std::string &iniFile,
+             const std::string &topology,
              size_t solution_id) {
-    std::ofstream output(ini_file);
+    std::ofstream output(iniFile);
     output << "[General]\n"
-              "network = " << ned_file << "\n"
+              "network = " << topology << "\n"
                                           "\n"
                                           "record-eventlog = false \n"
                                           "debug-on-errors = true\n"
-                                          "result-dir = result/" << ned_file << "\n"
+                                          "result-dir = result/" << topology << "\n"
                                                                                 "sim-time-limit = "
            << std::to_string(input->hyperPeriod / 1000000) << "ms\n"
                                                        "\n"
@@ -287,14 +246,14 @@ void SaveSolution::saveIni(const std::string &route_file,
 
     output << R"(**.switch*.processingDelay.delay = 20000ns)" << std::endl;
 
-    output << R"(**.filteringDatabase.database = xmldoc("xml/)" << route_file << R"(", "/filteringDatabases/"))"
+    output << R"(**.filteringDatabase.database = xmldoc("xml/)" << topology << "/" << routeFileName << R"(", "/filteringDatabases/"))"
            << std::endl;
     for (const auto &sw: input->swList) {
         auto ports = std::dynamic_pointer_cast<Switch>(sw)->getPorts();
         for (int i = 0; i < ports.size(); ++i) {
             if (!ports[i]->getGateControlList().empty()) {
                 output << "**." << sw->getName() << ".eth[" << std::to_string(i)
-                       << R"(].queue.gateController.initialSchedule = xmldoc("xml/)" << gcl_file;
+                       << R"(].queue.gateController.initialSchedule = xmldoc("xml/)" << topology << "/" << gclFileName;
                 output << R"(", "/schedules/switch[@name=')" << sw->getName() << R"(']/port[@id=')"
                        << std::to_string(i) << R"(']/schedule"))" << std::endl;
             }
@@ -309,9 +268,12 @@ void SaveSolution::saveIni(const std::string &route_file,
 //        output << R"(**.sw*.eth[*].mac.enablePreemptingFrames = false)" << std::endl;
 
     for (auto &es: input->esList) {
-        if (!std::dynamic_pointer_cast<EndSystem>(es)->getPort()->getGateControlList().empty()) {
-            output << "**." << es->getName() << R"(.trafGenSchedApp.initialSchedule = xmldoc("xml/)"
-                   << std::to_string(solution_id) << "_" << es->getName() << R"(.xml"))" << std::endl;
+        for (auto &stream: input->streams) {
+            if (stream->getSrc() == es) {
+                output << "**." << es->getName() << R"(.trafGenSchedApp.initialSchedule = xmldoc("xml/)"  << topology << "/"
+                       << std::to_string(solution_id) << "_" << es->getName() << R"(.xml"))" << std::endl;
+                break;
+            }
         }
     }
 }
