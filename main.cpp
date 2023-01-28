@@ -64,7 +64,8 @@ void run(int optionTopology,
     savePath.append("/" + std::to_string(input->streams.size()) + "/");
     std::filesystem::remove_all(savePath);
     std::filesystem::create_directories(savePath);
-    input->saveStreams(savePath);
+    if(streamFilePath.empty())
+        input->saveStreams(savePath);
     for (int i = 0; i < optionExecuteTimes; ++i) {
         auto gaSolver = std::make_unique<MoGaSolver>(input, flagDebug, generationNumber);
         gaSolver->solve(savePath, i);
