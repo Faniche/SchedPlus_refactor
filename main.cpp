@@ -22,10 +22,12 @@ int g_port_counter = 0;
 
 int g_node_id = 0;
 
-void
-run(int optionTopology, const std::string &streamFilePath, int optionStreamNumber, bool flagDebug, int generationNumber,
-    int runId) {
-    if (runId != 0) g_node_id = 0;
+void run(int optionTopology,
+         const std::string &streamFilePath,
+         int optionStreamNumber,
+         bool flagDebug,
+         int generationNumber,
+         int optionExecuteTimes) {
     std::shared_ptr<Input> input;
     std::string savePath = "SolutionReport/";
     switch (optionTopology) {
@@ -60,16 +62,13 @@ run(int optionTopology, const std::string &streamFilePath, int optionStreamNumbe
     }
     /* append stream number to result path. */
     savePath.append("/" + std::to_string(input->streams.size()) + "/");
-    if (runId == 0) {
-        std::filesystem::remove_all(savePath);
-        std::filesystem::create_directories(savePath);
-        if (optionStreamNumber != 0)
-            input->saveStreams(savePath);
+    std::filesystem::remove_all(savePath);
+    std::filesystem::create_directories(savePath);
+    input->saveStreams(savePath);
+    for (int i = 0; i < optionExecuteTimes; ++i) {
+        auto gaSolver = std::make_unique<MoGaSolver>(input, flagDebug, generationNumber);
+        gaSolver->solve(savePath, i);
     }
-
-    auto gaSolver = std::make_unique<MoGaSolver>(input, flagDebug, generationNumber);
-    gaSolver->solve(savePath, runId);
-
 }
 
 int main(int argc, char **argv) {
@@ -103,12 +102,7 @@ int main(int argc, char **argv) {
         console->set_level(spdlog::level::debug);
         spd::set_default_logger(console);
         spd::set_pattern("[%H:%M:%S] [%^%l%$] %s:%# %v");
-
-        for (int i = 0; i < optionExecuteTimes; ++i) {
-            run(optionTopology, streamFilePath, optionStreamNumber, flagDebug, optionGenerationNumber, i);
-        }
-
-
+        run(optionTopology, streamFilePath, optionStreamNumber, flagDebug, optionGenerationNumber, optionExecuteTimes);
     } catch (const spdlog::spdlog_ex &ex) {
 
         std::cout << "Log init failed: " << ex.what() << std::endl;
