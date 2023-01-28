@@ -72,12 +72,12 @@ void Tree_7sw_21es::vSetNodesAndLinks() {
     FullDuplexLink fdLink20(std::static_pointer_cast<Node>(es20), std::static_pointer_cast<Node>(sw6), es20->getPort(), std::const_pointer_cast<Port>(sw6->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
 
     /* Links connected four switches */
-    FullDuplexLink fdLink21(std::static_pointer_cast<Node>(sw0), std::static_pointer_cast<Node>(sw1), std::const_pointer_cast<Port>(sw0->getPorts()[3]), std::const_pointer_cast<Port>(sw1->getPorts()[5]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink22(std::static_pointer_cast<Node>(sw0), std::static_pointer_cast<Node>(sw2), std::const_pointer_cast<Port>(sw0->getPorts()[4]), std::const_pointer_cast<Port>(sw2->getPorts()[5]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink23(std::static_pointer_cast<Node>(sw1), std::static_pointer_cast<Node>(sw3), std::const_pointer_cast<Port>(sw1->getPorts()[3]), std::const_pointer_cast<Port>(sw3->getPorts()[5]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink24(std::static_pointer_cast<Node>(sw1), std::static_pointer_cast<Node>(sw4), std::const_pointer_cast<Port>(sw1->getPorts()[4]), std::const_pointer_cast<Port>(sw4->getPorts()[5]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink25(std::static_pointer_cast<Node>(sw2), std::static_pointer_cast<Node>(sw5), std::const_pointer_cast<Port>(sw2->getPorts()[3]), std::const_pointer_cast<Port>(sw5->getPorts()[5]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink26(std::static_pointer_cast<Node>(sw2), std::static_pointer_cast<Node>(sw6), std::const_pointer_cast<Port>(sw2->getPorts()[4]), std::const_pointer_cast<Port>(sw6->getPorts()[5]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink21(std::static_pointer_cast<Node>(sw0), std::static_pointer_cast<Node>(sw1), std::const_pointer_cast<Port>(sw0->getPorts()[3]), std::const_pointer_cast<Port>(sw1->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink22(std::static_pointer_cast<Node>(sw0), std::static_pointer_cast<Node>(sw2), std::const_pointer_cast<Port>(sw0->getPorts()[4]), std::const_pointer_cast<Port>(sw2->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink23(std::static_pointer_cast<Node>(sw1), std::static_pointer_cast<Node>(sw3), std::const_pointer_cast<Port>(sw1->getPorts()[4]), std::const_pointer_cast<Port>(sw3->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink24(std::static_pointer_cast<Node>(sw1), std::static_pointer_cast<Node>(sw4), std::const_pointer_cast<Port>(sw1->getPorts()[5]), std::const_pointer_cast<Port>(sw4->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink25(std::static_pointer_cast<Node>(sw2), std::static_pointer_cast<Node>(sw5), std::const_pointer_cast<Port>(sw2->getPorts()[4]), std::const_pointer_cast<Port>(sw5->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink26(std::static_pointer_cast<Node>(sw2), std::static_pointer_cast<Node>(sw6), std::const_pointer_cast<Port>(sw2->getPorts()[5]), std::const_pointer_cast<Port>(sw6->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
 
 
     std::vector<FullDuplexLink> fdLlinks{fdLink00, fdLink01, fdLink02, fdLink03, fdLink04, fdLink05,
