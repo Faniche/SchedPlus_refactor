@@ -94,10 +94,17 @@ void Input::setStreams(size_t streamsNum) {
     for (size_t i = 0; i < streamsNum; ++i) {
         stream_id_t streamId = i + 1;
         node_id_t src, dest;
-        do {
-            src  = esList[getRandInt(0, esList.size() - 1)]->getId();
-            dest = esList[getRandInt(0, esList.size() - 1)]->getId();
-        } while (src == dest);
+        if (i < esList.size()) {
+            src  = esList[i]->getId();
+            do {
+                dest = esList[getRandInt(0, esList.size() - 1)]->getId();
+            } while (src == dest);
+        } else {
+            do {
+                src  = esList[getRandInt(0, esList.size() - 1)]->getId();
+                dest = esList[getRandInt(0, esList.size() - 1)]->getId();
+            } while (src == dest);
+        }
         pcp_t pcp = i < streamsNum * 0.75 ? P6 : P5;
         auto stream = std::make_shared<Stream>(
                 streamId,
