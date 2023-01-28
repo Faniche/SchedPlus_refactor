@@ -23,3 +23,11 @@ void Route::setE2E(uint64_t _e2e) {
 void Route::addLink(const std::shared_ptr <DirectedLink>& link) {
     links.push_back(link);
 }
+
+std::string Route::toString() {
+    std::string routeStr = links[0]->getSrcNode()->getName();
+    for (size_t i = 1; i < links.size(); ++i)
+        routeStr.append(" -> " + links[i]->getSrcNode()->getName());
+    routeStr.append(" -> " + links[links.size() - 1]->getDestNode()->getName());
+    return routeStr;
+}
