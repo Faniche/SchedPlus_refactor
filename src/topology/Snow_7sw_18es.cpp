@@ -171,32 +171,32 @@ void Snow_7sw_18es::vSetNodesAndLinks() {
     FullDuplexLink fdLink24(std::static_pointer_cast<Node>(sw0),
                             std::static_pointer_cast<Node>(sw1),
                             std::const_pointer_cast<Port>(sw0->getPorts()[4]),
-                            std::const_pointer_cast<Port>(sw0->getPorts()[5]),
+                            std::const_pointer_cast<Port>(sw1->getPorts()[5]),
                             SCHEDPLUS_1000_ETHERNET);
     FullDuplexLink fdLink25(std::static_pointer_cast<Node>(sw1),
                             std::static_pointer_cast<Node>(sw2),
-                            std::const_pointer_cast<Port>(sw0->getPorts()[4]),
-                            std::const_pointer_cast<Port>(sw1->getPorts()[5]),
-                            SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink26(std::static_pointer_cast<Node>(sw2),
-                            std::static_pointer_cast<Node>(sw3),
                             std::const_pointer_cast<Port>(sw1->getPorts()[4]),
                             std::const_pointer_cast<Port>(sw2->getPorts()[5]),
                             SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink26(std::static_pointer_cast<Node>(sw2),
+                            std::static_pointer_cast<Node>(sw3),
+                            std::const_pointer_cast<Port>(sw2->getPorts()[4]),
+                            std::const_pointer_cast<Port>(sw3->getPorts()[5]),
+                            SCHEDPLUS_1000_ETHERNET);
     FullDuplexLink fdLink27(std::static_pointer_cast<Node>(sw3),
                             std::static_pointer_cast<Node>(sw4),
-                            std::const_pointer_cast<Port>(sw1->getPorts()[4]),
-                            std::const_pointer_cast<Port>(sw3->getPorts()[5]),
+                            std::const_pointer_cast<Port>(sw3->getPorts()[4]),
+                            std::const_pointer_cast<Port>(sw4->getPorts()[5]),
                             SCHEDPLUS_1000_ETHERNET);
     FullDuplexLink fdLink28(std::static_pointer_cast<Node>(sw4),
                             std::static_pointer_cast<Node>(sw5),
-                            std::const_pointer_cast<Port>(sw2->getPorts()[4]),
-                            std::const_pointer_cast<Port>(sw4->getPorts()[5]),
+                            std::const_pointer_cast<Port>(sw4->getPorts()[4]),
+                            std::const_pointer_cast<Port>(sw5->getPorts()[5]),
                             SCHEDPLUS_1000_ETHERNET);
     FullDuplexLink fdLink29(std::static_pointer_cast<Node>(sw5),
                             std::static_pointer_cast<Node>(sw0),
-                            std::const_pointer_cast<Port>(sw2->getPorts()[4]),
-                            std::const_pointer_cast<Port>(sw5->getPorts()[5]),
+                            std::const_pointer_cast<Port>(sw5->getPorts()[4]),
+                            std::const_pointer_cast<Port>(sw0->getPorts()[5]),
                             SCHEDPLUS_1000_ETHERNET);
 
 
