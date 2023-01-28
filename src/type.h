@@ -39,7 +39,7 @@ typedef int32_t node_id_t;
 typedef std::pair<node_id_t, node_id_t> link_id_t;
 typedef int32_t port_id_t;
 typedef int64_t sched_time_t;
-typedef int64_t route_t;
+typedef size_t route_t;
 typedef size_t hop_t;
 typedef int64_t group_id_t;
 constexpr std::pair<hop_t, link_id_t> null_link_id = std::make_pair(0, std::make_pair(INT32_MAX, INT32_MAX));
