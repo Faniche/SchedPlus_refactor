@@ -27,25 +27,27 @@ void run(int optionTopology,
          int optionStreamNumber,
          bool flagDebug,
          int generationNumber,
-         int optionExecuteTimes) {
+         int optionExecuteTimes,
+         bool flagUseNoWait) {
     std::shared_ptr<Input> input;
     std::string savePath = "SolutionReport/";
+    std::string topology;
     switch (optionTopology) {
         case 1:
             input = std::make_shared<Line_2sw_2es>();
-            savePath.append(LINE_2SW_2ES);
+            topology = LINE_2SW_2ES;
             break;
         case 2:
             input = std::make_shared<Ring_4sw_8es>();
-            savePath.append(RING_4SW_8ES);
+            topology = RING_4SW_8ES;
             break;
         case 3:
             input = std::make_shared<Tree_7sw_21es>();
-            savePath.append(TREE_7SW_21ES);
+            topology = TREE_7SW_21ES;
             break;
         case 4:
             input = std::make_shared<Snow_7sw_18es>();
-            savePath.append(SNOW_7SW_18ES);
+            topology = SNOW_7SW_18ES;
             break;
         default:
             exit(EXIT_FAILURE);
@@ -60,14 +62,20 @@ void run(int optionTopology,
     } else {
         spdlog::get("console")->error("{}:{}: input error", __FILE__, __LINE__);
     }
+    savePath.append(topology + "/" + std::to_string(input->streams.size()) + "/");
+    std::string streamsSavePath = savePath;
+    streamsSavePath.append(topology + "_" + std::to_string(input->streams.size()) + "_streams.json");
     /* append stream number to result path. */
-    savePath.append("/" + std::to_string(input->streams.size()) + "/");
+    if (flagUseNoWait)
+        savePath.append("nowait/");
+    else
+        savePath.append("IMIR/");
     std::filesystem::remove_all(savePath);
     std::filesystem::create_directories(savePath);
     if(streamFilePath.empty())
-        input->saveStreams(savePath);
+        input->saveStreams(streamsSavePath);
     for (int i = 0; i < optionExecuteTimes; ++i) {
-        auto gaSolver = std::make_unique<MoGaSolver>(input, flagDebug, generationNumber);
+        auto gaSolver = std::make_unique<MoGaSolver>(input, flagDebug, generationNumber, flagUseNoWait);
         gaSolver->solve(savePath, i);
     }
 }
@@ -89,8 +97,8 @@ int main(int argc, char **argv) {
     app.add_option("-e, --execute", optionExecuteTimes, "The execute times");
     bool flagDebug = {false};
     app.add_flag("-d, --debug", flagDebug, "debug mode");
-    bool flagRandom = {false};
-    app.add_flag("-r, --random", flagRandom, "use random flow for test");
+    bool flagUseNoWait = {false};
+    app.add_flag("-n, --nowait", flagUseNoWait, "use no_wait schedule or IMIR");
     try {
         CLI11_PARSE(app, argc, argv);
     } catch (CLI::ParseError &error) {
@@ -103,7 +111,7 @@ int main(int argc, char **argv) {
         console->set_level(spdlog::level::debug);
         spd::set_default_logger(console);
         spd::set_pattern("[%H:%M:%S] [%^%l%$] %s:%# %v");
-        run(optionTopology, streamFilePath, optionStreamNumber, flagDebug, optionGenerationNumber, optionExecuteTimes);
+        run(optionTopology, streamFilePath, optionStreamNumber, flagDebug, optionGenerationNumber, optionExecuteTimes, flagUseNoWait);
     } catch (const spdlog::spdlog_ex &ex) {
 
         std::cout << "Log init failed: " << ex.what() << std::endl;
