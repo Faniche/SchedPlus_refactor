@@ -9,12 +9,12 @@
 
 MoGaSolver::MoGaSolver(std::shared_ptr<Input> _input,
                        bool _debug = false,
-                       int _generations = 100) :
+                       int _generations = 100,
+                       bool _flagUseNoWait = false) :
         input(std::move(_input)),
         debug(_debug),
-        generations(_generations) {
-
-}
+        generations(_generations),
+        flagUseNoWait(_flagUseNoWait) {}
 
 void MoGaSolver::vSolve(const std::string &path, int32_t runId) {
     GA_Type ga_obj;
@@ -37,8 +37,11 @@ void MoGaSolver::vSolve(const std::string &path, int32_t runId) {
     ga_obj.crossover_fraction = 0.7;
     ga_obj.mutation_rate = 0.4;
 
+    EA::Chronometer timer;
+    timer.tic();
     ga_obj.solve();
-    save_results(ga_obj, path, runId);
+    double cost = timer.toc();
+    save_results(ga_obj, path, runId, cost);
     std::cout << "ga solver" << std::endl;
 }
 
@@ -94,8 +97,8 @@ bool MoGaSolver::checkDDLorE2E(MyMiddleCost &c,
 }
 
 void MoGaSolver::groupStreamsInit(const std::vector<route_t> &routes,
-                                  map<link_id_t, vector<std::pair<stream_id_t, hop_t>>> &linkFlows,
                                   map<group_id_t, vector<stream_id_t>> &groupStream) {
+    map<link_id_t, vector<std::pair<stream_id_t, hop_t>>> linkFlows;
     for (const auto &[streamId, pos]: input->streamsId) {
         auto const &route = input->getRouteLinks(streamId, routes[pos]);
         hop_t j = 0;
@@ -203,16 +206,24 @@ void MoGaSolver::setLinkHyperperiod(const TtStreams &p, MyMiddleCost &c) {
 }
 
 void MoGaSolver::setLinkStreamInterval(const TtStreams &p, MyMiddleCost &c) {
-    for (const auto &[groupId, streamsInGroup]: c.uncachedFlows) {
+    for (const auto &[groupId, streamsInGroup]: c.groupStream) {
         for (const auto &streamId: streamsInGroup) {
-            sched_time_t streamPeriod = input->getStream(streamId)->getPeriod();
+//                sched_time_t streamPeriod = input->getStream(streamId)->getPeriod();
+            const auto stream = input->getStream(streamId);
+            if (stream->getPcp() == P5 && !p.useNoWait)  continue;
             const auto &route = input->getRouteLinks(streamId, p.routes[input->getStreamPos(streamId)]);
             for (hop_t i = 0; i < route.size(); ++i) {
-                for (int j = 0; j < c.linkHyperperiod[route[i]->getId()] / streamPeriod; ++j) {
-                    sched_time_t t = c.trafficOffsets[groupId][streamId][i].first + j * streamPeriod;
-                    auto gce = std::make_tuple(t, t + c.trafficOffsets[groupId][streamId][i].second, "01000000");
+                for (int j = 0; j < c.linkHyperperiod[route[i]->getId()] / stream->getPeriod(); ++j) {
+                    sched_time_t t = c.trafficOffsets[groupId][streamId][i].first + j * stream->getPeriod();
+                    std::string gsv;
+                    if (stream->getPcp() == P5)
+                        gsv = "00100000";
+                    else if (stream->getPcp() == P6)
+                        gsv = "01000000";
+                    auto gce = std::make_tuple(t, t + c.trafficOffsets[groupId][streamId][i].second, gsv);
                     c.linkInterval[route[i]->getId()].emplace(gce);
-                    c.linkIntervalDuplex[route[i]->getId()][gce].emplace(t, t + c.trafficOffsets[groupId][streamId][i].second, streamId);
+                    if (!p.useNoWait)
+                        c.linkIntervalDuplex[route[i]->getId()][gce].emplace(t, t + c.trafficOffsets[groupId][streamId][i].second, streamId);
                 }
             }
         }
@@ -232,55 +243,78 @@ bool MoGaSolver::checkCollisionWithInterval(const TtStreams &p, MyMiddleCost &c)
     return true;
 }
 
-//bool MoGaSolver::checkCollisionWithStreamHelp(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
-//                                              sched_time_t sjPeriod, sched_time_t sjMid, sched_time_t sjLen) {
-//    sched_time_t hpij = std::lcm(siPeriod, sjPeriod);
-//    sched_time_t dist = (siLen + sjLen) / 2 + IFG_TIME;
-//    if (siPeriod < sjPeriod) {
-//        sched_time_t _fi_mid = siMid % siPeriod;
-//        for (int k = 0; k < hpij / sjPeriod; ++k) {
-//            int d = (sjMid + k * sjPeriod) % siPeriod - _fi_mid;
-//            if (std::abs(d) < dist) {
-//                SPDLOG_LOGGER_TRACE(spdlog::get("console"), "dist = {}, d = {}", dist, d);
-//                return false;
-//            }
-//        }
-//    } else {
-//        sched_time_t _fj_mid = sjMid % sjPeriod;
-//        for (int k = 0; k < hpij / siPeriod; ++k) {
-//            int d = (siMid + k * siPeriod) % sjPeriod - _fj_mid;
-//            if (std::abs(d) < dist) {
-//                SPDLOG_LOGGER_TRACE(spdlog::get("console"), "dist = {}, d = {}", dist, d);
-//                return false;
-//            }
-//        }
-//    }
-//    return true;
-//}
-//
-//bool MoGaSolver::checkCollisionWithStream(MyMiddleCost &c, const std::vector<route_t> &routes) {
-//    for (const auto &[groupId, streamsInGroup]: c.uncachedFlows) {
-//
-//    }
-//    for (auto const &[linkId, streamHop]: c.linkFlows) {
-//        double transmitSpd = input->links[linkId]->getSrcPort()->getTransmitSpd();
-//        for (int i = 0; i < streamHop.size(); ++i) {
-//            const auto &streamI = input->streams[input->streamsId[streamHop[i].first]];
-//            sched_time_t fiMid = c.trafficOffsets[streamHop[i].first][streamHop[i].second].
-//                                 + streamI->getLength() * transmitSpd / 2;
-//            for (int j = i + 1; j < streamHop.size(); ++j) {
-//                const auto &streamJ = input->streams[input->streamsId[streamHop[j].first]];
-//                sched_time_t fjMid = c.trafficOffsets[streamHop[j].first][streamHop[j].second]
-//                                     + streamJ->getLength() * transmitSpd / 2;
-//                if (!checkCollisionWithStreamHelp(streamI->getPeriod(), fiMid, streamI->getLength() * transmitSpd,
-//                                                  streamJ->getPeriod(), fjMid, streamJ->getLength() * transmitSpd)) {
-//                    return false;
-//                }
-//            }
-//        }
-//    }
-//    return true;
-//}
+bool MoGaSolver::checkCollisionWithStreamHelp(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
+                                              sched_time_t sjPeriod, sched_time_t sjMid, sched_time_t sjLen) {
+    sched_time_t hpij = std::lcm(siPeriod, sjPeriod);
+    sched_time_t dist = (siLen + sjLen) / 2 + IFG_TIME;
+    if (siPeriod < sjPeriod) {
+        sched_time_t _fi_mid = siMid % siPeriod;
+        for (int k = 0; k < hpij / sjPeriod; ++k) {
+            int d = (sjMid + k * sjPeriod) % siPeriod - _fi_mid;
+            if (std::abs(d) < dist) {
+                SPDLOG_LOGGER_TRACE(spdlog::get("console"), "dist = {}, d = {}", dist, d);
+                return false;
+            }
+        }
+    } else {
+        sched_time_t _fj_mid = sjMid % sjPeriod;
+        for (int k = 0; k < hpij / siPeriod; ++k) {
+            int d = (siMid + k * siPeriod) % sjPeriod - _fj_mid;
+            if (std::abs(d) < dist) {
+                SPDLOG_LOGGER_TRACE(spdlog::get("console"), "dist = {}, d = {}", dist, d);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool MoGaSolver::checkCollisionWithStream(const TtStreams &p, MyMiddleCost &c) {
+    c.linkFlows.clear();
+    for (const auto &[streamId, pos]: input->streamsId) {
+        auto const &stream = input->getStream(streamId);
+        const auto &route = input->getRouteLinks(streamId, p.routes[pos]);
+        for (hop_t i = 0; i < route.size(); ++i) {
+            link_id_t linkId = route[i]->getId();
+            c.linkFlows[linkId].emplace_back(streamId, i);
+        }
+    }
+    for (auto const &[linkId, streamHop]: c.linkFlows) {
+        double transmitSpd = input->links[linkId]->getSrcPort()->getTransmitSpd();
+        for (int i = 0; i < streamHop.size(); ++i) {
+            const auto &streamI = input->streams[input->streamsId[streamHop[i].first]];
+            group_id_t gi = getGrpIdOfStream(streamI->getId(), c);
+            sched_time_t siLen = c.trafficOffsets[gi][streamHop[i].first][streamHop[i].second].second;
+            sched_time_t siMid = c.trafficOffsets[gi][streamHop[i].first][streamHop[i].second].first + siLen / 2;
+            for (int j = i + 1; j < streamHop.size(); ++j) {
+                const auto &streamJ = input->streams[input->streamsId[streamHop[j].first]];
+                group_id_t gj = getGrpIdOfStream(streamJ->getId(), c);
+                sched_time_t sjLen = c.trafficOffsets[gj][streamHop[j].first][streamHop[j].second].second;
+                sched_time_t sjMid = c.trafficOffsets[gj][streamHop[j].first][streamHop[j].second].first + sjLen / 2;
+                if (!checkCollisionWithStreamHelp(streamI->getPeriod(), siMid, siLen,
+                                                  streamJ->getPeriod(), sjMid, sjLen)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    for (auto &[linkId, intervals]: c.linkInterval) {
+        auto prev = intervals.end();
+        for (auto iter = intervals.begin(); iter != intervals.end(); ++iter) {
+            if (prev != intervals.end() && get<1>(*prev) + IFG_TIME == get<0>(*iter)) {
+                std::string gsv = get<2>(*iter);
+                if (get<2>(*prev) != get<2>(*iter))
+                    gsv = "01100000";
+                auto newGce = std::make_tuple(get<0>(*prev), get<1>(*iter), gsv);
+                iter = c.linkInterval[linkId].erase(prev, iter.operator++());
+                iter = c.linkInterval[linkId].insert(iter, newGce);
+            }
+            prev = iter;
+        }
+    }
+    return true;
+}
 
 bool MoGaSolver::scheduleP5Help(const TtStreams &p, MyMiddleCost &c) {
 
@@ -288,7 +322,6 @@ bool MoGaSolver::scheduleP5Help(const TtStreams &p, MyMiddleCost &c) {
 }
 
 bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
-    c.totalGcl = 0;
     c.totalCache = 0;
     for (const auto &[groupId, streamsInGroup]: c.cachedFlows) {
         for (auto const &streamId: streamsInGroup) {
@@ -330,8 +363,6 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
                         /* no collision with next gce, break the loop */
                         if (hasMoveBack && siEnd + IFG_TIME < sjStart)
                             break;
-//                        else
-//                            spdlog::get("console")->info("{}:{}: has move back", __FILE_NAME__, __LINE__);
                         while (std::abs(sjMid - siMidMod) > d && iter != c.linkInterval[linkId].end()) {
                             iter++;
                             if (iter != c.linkInterval[linkId].end()) {
@@ -377,7 +408,7 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
                                     if (std::abs(skMid - _siMid) <= _d) {
                                         intervalUseCount++;
                                         if (intervalUseCount > 1) {
-                                            spdlog::get("console")->error("{}:{}: something error", __FILE__, __LINE__);
+                                            spdlog::get("console")->debug("{}:{}: something error", __FILE__, __LINE__);
                                             return false;
                                         }
                                         if (send < skStart && skStart < send + transmitDelay + IFG_TIME)
@@ -435,14 +466,24 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
         }
     }
     /* merge the neighboured intervals*/
+    c.totalGcl = 0;
+    c.longestGcl = 0;
     for (auto &[linkId, intervals]: c.linkInterval) {
-        c.totalGcl += (intervals.size() * 2 + 1);
+        double len = intervals.size() * 2 + 1;
+        c.linkGclSize[linkId] = len;
+        c.totalGcl += len;
+        if (c.longestGcl == 0)
+            c.longestGcl = len;
+        else
+            c.longestGcl = std::max(c.longestGcl, len);
     }
     /* get jitter of p5 traffic */
     for (auto &[streamId, sendIdxs]: c.p5TrafficOffsets) {
         vector<sched_time_t> e2e(sendIdxs.size(), 0);
         for (auto &[sendIdx, hop]: sendIdxs) {
-            e2e[sendIdx] = get<0>(hop[hop.size() - 1]) - get<0>(hop[0]);
+            sched_time_t start = get<0>(hop[0]);
+            sched_time_t end = get<0>(hop[hop.size() - 1]);
+            e2e[sendIdx] = end - start;
         }
         double totalDiff = 0;
         for (size_t i = 0; i < e2e.size(); ++i) {
@@ -452,6 +493,7 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
         if (totalDiff == 0)
             c.cachedStreamJitter[streamId] = 0;
         c.cachedStreamJitter[streamId] = totalDiff / (e2e.size() - 1);
+        c.p5E2e[streamId] = e2e;
     }
     c.maxJitter = std::make_pair(0, -1);
     for (const auto &item: c.cachedStreamJitter) {
@@ -459,6 +501,16 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
             c.maxJitter = item;
     }
     return true;
+}
+
+group_id_t MoGaSolver::getGrpIdOfStream(stream_id_t streamId, MyMiddleCost &c){
+    for (const auto &[groupId, streamsInGroup]: c.groupStream) {
+        for (const auto &_streamId: streamsInGroup) {
+            if (_streamId == streamId)
+                return groupId;
+        }
+    }
+    return 0;
 }
 
 void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd01) {
@@ -476,9 +528,7 @@ void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd
                      > input->streams[pos]->getDeliveryGuarantee()->getLowerVal());
         }
     }
-    map<link_id_t, vector<std::pair<stream_id_t, hop_t>>> linkFlows;
-//    map<group_id_t, vector<stream_id_t>> groupStream;
-    groupStreamsInit(p.routes, linkFlows, p.groupStream);
+    groupStreamsInit(p.routes, p.groupStream);
     for (const auto &[groupId, streamsInGroup]: p.groupStream) {
         p.offsets[input->getStreamPos(streamsInGroup[0])] = 0;
         for (size_t i = 1; i < streamsInGroup.size(); ++i) {
@@ -504,38 +554,41 @@ void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd
             }
         }
     }
-    //    p.useNoWait = rnd01() <= 0.5;
-    p.useNoWait = false;
+    p.useNoWait = flagUseNoWait;
 }
 
 bool MoGaSolver::eval_solution(const TtStreams &p, MyMiddleCost &c) {
     c.groupStream = p.groupStream;
+    groupStreamsEval(p.routes, c);
     setEachHopStartTime(p, c);
+    setLinkHyperperiod(p, c);
+    setLinkStreamInterval(p, c);
     std::pair<stream_id_t, sched_time_t> max_ddl;
     std::pair<stream_id_t, sched_time_t> max_e2e;
     if (!checkDDLorE2E(c, p.useNoWait, max_ddl, max_e2e))
         return false;
     if (p.useNoWait) {
-        for (const auto &[streamId, pos]: input->streamsId) {
-            auto const &stream = input->getStream(streamId);
-            const auto &route = input->getRouteLinks(streamId, p.routes[pos]);
-            for (hop_t i = 0; i < route.size(); ++i) {
-                link_id_t linkId = route[i]->getId();
-                c.linkFlows[linkId].emplace_back(streamId, i);
-            }
-        }
-        if (!checkCollisionWithInterval(p, c))
+        if (!checkCollisionWithStream(p, c))
             return false;
+        c.totalGcl = 0;
+        c.longestGcl = 0;
+        c.totalCache = 0;
+        for (auto &[linkId, intervals]: c.linkInterval) {
+            double len = intervals.size() * 2 + 1;
+            c.linkGclSize[linkId] = len;
+            c.totalGcl += len;
+            if (c.longestGcl == 0)
+                c.longestGcl = len;
+            else
+                c.longestGcl = std::max(c.longestGcl, len);
+        }
     } else {
-        groupStreamsEval(p.routes, c);
-        setLinkHyperperiod(p, c);
-        setLinkStreamInterval(p, c);
         if (!checkCollisionWithInterval(p, c))
             return false;
         if (!scheduleP5(p, c))
             return false;
-        c.groupSize = 1.0 / static_cast<double>(c.groupStream.size());
     }
+    c.groupSize = 1.0 / static_cast<double>(c.groupStream.size());
     return true;
 }
 
@@ -566,20 +619,24 @@ TtStreams MoGaSolver::mutate(
             X_new.routes[pos] = 0;
         }
     }
+    groupStreamsInit(X_new.routes, X_new.groupStream);
     for (const auto &[groupId, streamsInGroup]: X_base.groupStream) {
         X_new.offsets[input->getStreamPos(streamsInGroup[0])] = 0;
         for (size_t i = 1; i < streamsInGroup.size(); ++i) {
             stream_id_t streamId = streamsInGroup[i];
             const auto &stream = input->getStream(streamId);
             int pos = input->getStreamPos(streamId);
-            sched_time_t upperBound = X_base.upperBounds[pos];
+            sched_time_t upperBound = stream->getPeriod()
+                                      - stream->getSrc()->getDpr()
+                                      - stream->getSrcTransmitDelay();
             if (stream->getPcp() == P6) {
                 sched_time_t tmp = stream->getDeliveryGuarantee()->getLowerVal()
                                    - stream->getRoutes()[X_new.routes[pos]]->getE2E();
                 upperBound = std::min(upperBound, tmp);
-                X_new.upperBounds[pos] = upperBound;
+                X_new.offsets[pos] = upperBound * rnd01();
+//                X_new.upperBounds[pos] = upperBound;
             } else if (stream->getPcp() == P5) {
-                X_new.upperBounds[pos] = upperBound;
+//                X_new.upperBounds[pos] = upperBound;
             }
             double offset = X_new.offsets[pos] / pow(10, 6);
             if (X_new.offsets[pos] >= upperBound) {
@@ -629,19 +686,25 @@ TtStreams MoGaSolver::crossover(const TtStreams &X1, const TtStreams &X2, const 
             X_new.routes[pos] = 0;
         }
     }
+    groupStreamsInit(X_new.routes, X_new.groupStream);
     for (const auto &[groupId, streamsInGroup]: X_new.groupStream) {
         X_new.offsets[input->getStreamPos(streamsInGroup[0])] = 0;
         for (size_t i = 1; i < streamsInGroup.size(); ++i) {
             stream_id_t streamId = streamsInGroup[i];
             const auto &stream = input->getStream(streamId);
             int pos = input->getStreamPos(streamId);
-            sched_time_t upperBound = X_new.upperBounds[pos];
+            sched_time_t upperBound = stream->getPeriod()
+                                      - stream->getSrc()->getDpr()
+                                      - stream->getSrcTransmitDelay();
             if (stream->getPcp() == P6) {
                 sched_time_t tmp = stream->getDeliveryGuarantee()->getLowerVal()
                                    - stream->getRoutes()[X_new.routes[pos]]->getE2E();
                 upperBound = std::min(upperBound, tmp);
-                X_new.upperBounds[pos] = upperBound;
+//                X_new.upperBounds[pos] = upperBound;
+            } else if (stream->getPcp() == P5) {
+//                X_new.upperBounds[pos] = upperBound;
             }
+
             double offset = 0;
             while (true) {
                 if (X1.offsets[pos] > upperBound && X2.offsets[pos] > upperBound)
@@ -662,7 +725,7 @@ TtStreams MoGaSolver::crossover(const TtStreams &X1, const TtStreams &X2, const 
 
 vector<double> MoGaSolver::calculate_MO_objectives(const GA_Type::thisChromosomeType &X) {
     return {
-            X.middle_costs.totalGcl,
+            X.middle_costs.longestGcl,
             X.middle_costs.maxJitter.second,
             X.middle_costs.groupSize,
             X.middle_costs.totalCache
@@ -683,7 +746,7 @@ void MoGaSolver::MO_report_generation(
     std::cout << "}" << std::endl;
 }
 
-void MoGaSolver::save_results(GA_Type &ga_obj, const std::string &path, int32_t runId) {
+void MoGaSolver::save_results(GA_Type &ga_obj, const std::string &path, int32_t runId, double costTime) {
     vector<unsigned int> paretoFrontIndices = ga_obj.last_generation.fronts[0];
     std::string resultSummaryPath = path;
 
@@ -691,19 +754,21 @@ void MoGaSolver::save_results(GA_Type &ga_obj, const std::string &path, int32_t 
     size_t second = path.find('/', first);
     std::string topology = path.substr(first, second - first);
 
-    resultSummaryPath.append(topology + "_result_summary.txt");
+    resultSummaryPath.append(topology + "_" + std::to_string(input->streams.size()) + "_result_summary.txt");
     std::fstream resultSummary(resultSummaryPath, std::fstream::out | std::fstream::app);
     spdlog::get("console")->info("file: {}, {}", resultSummaryPath, strerror(errno));
 //    std::ofstream out_file_offset_route(result_offset_route);
     if (runId == 0) {
-        resultSummary << "------+---------+--------------------+--------------------+--------------------+--------------------" << std::endl;
+        resultSummary << "------+---------+--------------------+--------------------+--------------------+--------------------+--------------------+--------------------" << std::endl;
         resultSummary << std::setw(6) << "run_id"
                       << "|" << std::setw(9) << "pareto_id"
                       << "|" << std::setw(20) << "jitter"
                       << "|" << std::setw(20) << "total_cache"
                       << "|" << std::setw(20) << "total_gcl"
-                      << "|" << std::setw(20) << "group_size" << std::endl;
-        resultSummary << "------|---------|--------------------|--------------------|--------------------+--------------------" << std::endl;
+                      << "|" << std::setw(20) << "longest_gcl"
+                      << "|" << std::setw(20) << "group_size"
+                      << "|" << std::setw(20) << "cost_time"<< std::endl;
+        resultSummary << "------|---------|--------------------|--------------------|--------------------+--------------------+--------------------+--------------------" << std::endl;
     }
 
     for (unsigned int i: paretoFrontIndices) {
@@ -714,7 +779,9 @@ void MoGaSolver::save_results(GA_Type &ga_obj, const std::string &path, int32_t 
                       << "|" << std::setw(20) << X.middle_costs.maxJitter.second
                       << "|" << std::setw(20) << X.middle_costs.totalCache
                       << "|" << std::setw(20) << X.middle_costs.totalGcl
-                      << "|" << std::setw(20) << std::round(1.0 / X.middle_costs.groupSize) << std::endl;
+                      << "|" << std::setw(20) << X.middle_costs.longestGcl
+                      << "|" << std::setw(20) << std::round(1.0 / X.middle_costs.groupSize)
+                      << "|" << std::setw(20) << costTime << std::endl;
 
         SaveSolution saveSolution(input, &X.genes, &X.middle_costs);
         saveSolution.saveGCL();
@@ -735,6 +802,7 @@ void MoGaSolver::save_results(GA_Type &ga_obj, const std::string &path, int32_t 
         iniFile.append(std::to_string(i) + "_" + topology + ".ini");
         saveSolution.saveIni(routeFileName, gclFileName, iniFile, topology, i);
 
+        saveSolution.saveScheduleAndMiddleCost(solutionPath, i);
 //        std::string event_file = OUT_LOCATION_WAIT;
 //        event_file.append("/" + std::to_string(i) + "_event.txt");
 //        saveSolution.saveEvent(X.genes, X.middle_costs, event_file);

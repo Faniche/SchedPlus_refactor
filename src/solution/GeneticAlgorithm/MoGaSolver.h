@@ -23,6 +23,8 @@ private:
 
     int generations;
 
+    bool flagUseNoWait;
+
     void vSolve(const std::string &path, int32_t runId) override;
 
 
@@ -37,7 +39,6 @@ private:
                        std::pair<stream_id_t, sched_time_t> &maxE2E);
 
     void groupStreamsInit(const std::vector<route_t> &routes,
-                          map<link_id_t, vector<std::pair<stream_id_t, hop_t>>> &linkFlows,
                           map<group_id_t, vector<stream_id_t>> &groupStream);
 
     void groupStreamsEval(const std::vector<route_t> &routes,
@@ -49,19 +50,19 @@ private:
 
     bool checkCollisionWithInterval(const TtStreams &p, MyMiddleCost &c);
 
-//    static bool checkCollisionWithStreamHelp(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
-//                                             sched_time_t sjPeriod, sched_time_t sjMid, sched_time_t sjLen);
-//
-//    bool checkCollisionWithStream(MyMiddleCost &c, const std::vector<route_t> &routes);
+    static bool checkCollisionWithStreamHelp(sched_time_t siPeriod, sched_time_t siMid, sched_time_t siLen,
+                                             sched_time_t sjPeriod, sched_time_t sjMid, sched_time_t sjLen);
+
+    bool checkCollisionWithStream(const TtStreams &p, MyMiddleCost &c);
 
     bool scheduleP5Help(const TtStreams &p, MyMiddleCost &c);
 
     bool scheduleP5(const TtStreams &p, MyMiddleCost &c);
 
-
+    group_id_t getGrpIdOfStream(stream_id_t streamId, MyMiddleCost &c);
 
 public:
-    explicit MoGaSolver(std::shared_ptr<Input> _input, bool _debug, int _generations);
+    explicit MoGaSolver(std::shared_ptr<Input> _input, bool _debug, int _generations, bool _flagUseNoWait);
 
     void init_genes(TtStreams &p, const std::function<double(void)> &rnd01);
 
@@ -86,7 +87,7 @@ public:
             const EA::GenerationType<TtStreams, MyMiddleCost> &last_generation,
             const vector<unsigned int> &pareto_fron);
 
-    void save_results(GA_Type &ga_obj, const std::string &path, int32_t runId);
+    void save_results(GA_Type &ga_obj, const std::string &path, int32_t runId, double costTime);
 
 };
 
