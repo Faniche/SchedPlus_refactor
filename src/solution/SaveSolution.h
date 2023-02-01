@@ -42,6 +42,8 @@ public:
                  const std::string &iniFile,
                  const std::string &topology,
                  size_t solution_id);
+
+    void saveScheduleAndMiddleCost(const std::string &middleCostPath, size_t solutionId);
 };
 
 

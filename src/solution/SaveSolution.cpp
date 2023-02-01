@@ -65,11 +65,11 @@ void SaveSolution::saveRoute(const std::string &routeFileLocation) {
 }
 
 void SaveSolution::saveGCL() {
-    for (const auto& link: input->links) {
+    for (const auto &link: input->links) {
         link.second->clearGateControlEntry();
     }
     /* map<link_id_t, set<std::tuple<sched_time_t, sched_time_t, bool>>> linkInterval; */
-    for (const auto& [linkId, intervals]: c->linkInterval) {
+    for (const auto &[linkId, intervals]: c->linkInterval) {
 //        if (input->nodeIdMap[linkId.first]->getNodeType() == END_SYSTEM)    continue;
         for (auto &interval: intervals) {
             input->links[linkId]->getSrcPort()->addGateControlEntry(std::make_shared<GateControlEntry>(interval));
@@ -85,7 +85,6 @@ void SaveSolution::saveGCL(const std::string &gclFileLocation) {
 }
 
 void SaveSolution::saveSwPortSchedule(const std::string &schedFileLocation) {
-    spdlog::get("console")->info("Saving gcl: {}", schedFileLocation);
     pugi::xml_document xdoc;
     pugi::xml_node xdec = xdoc.prepend_child(pugi::node_declaration);
     xdec.append_attribute("version").set_value("1.0");
@@ -153,7 +152,7 @@ void SaveSolution::saveSwPortSchedule(const std::string &schedFileLocation) {
 }
 
 void SaveSolution::saveEsSchedule(const std::string &schedFileLocation) {
-    map<node_id_t , vector<std::shared_ptr<Stream>>> esStreamMap;
+    map<node_id_t, vector<std::shared_ptr<Stream>>> esStreamMap;
     /* Group the flow with src */
     for (auto &stream: input->streams) {
         node_id_t nodeId = stream->getSrc()->getId();
@@ -217,10 +216,10 @@ void SaveSolution::saveEsSchedule(const std::string &schedFileLocation) {
 }
 
 void SaveSolution::saveIni(const std::string &routeFileName,
-             const std::string &gclFileName,
-             const std::string &iniFile,
-             const std::string &topology,
-             size_t solution_id) {
+                           const std::string &gclFileName,
+                           const std::string &iniFile,
+                           const std::string &topology,
+                           size_t solution_id) {
     std::ofstream output(iniFile);
     output << "[General]\n"
               "network = " << topology << "\n"
@@ -230,10 +229,10 @@ void SaveSolution::saveIni(const std::string &routeFileName,
                                           "result-dir = result/" << topology << "\n"
                                                                                 "sim-time-limit = "
            << std::to_string(input->hyperPeriod / 1000000) << "ms\n"
-                                                       "\n"
-                                                       "# debug\n"
-                                                       "**.displayAddresses = false\n"
-                                                       "**.verbose = false" << std::endl;
+                                                              "\n"
+                                                              "# debug\n"
+                                                              "**.displayAddresses = false\n"
+                                                              "**.verbose = false" << std::endl;
     output << "# MAC Addresses" << std::endl;
     for (const auto &es: input->esList) {
         node_id_t nodeId = es->getId();
@@ -246,7 +245,8 @@ void SaveSolution::saveIni(const std::string &routeFileName,
 
     output << R"(**.switch*.processingDelay.delay = 20000ns)" << std::endl;
 
-    output << R"(**.filteringDatabase.database = xmldoc("xml/)" << topology << "/" << routeFileName << R"(", "/filteringDatabases/"))"
+    output << R"(**.filteringDatabase.database = xmldoc("xml/)" << topology << "/" << routeFileName
+           << R"(", "/filteringDatabases/"))"
            << std::endl;
     for (const auto &sw: input->swList) {
         auto ports = std::dynamic_pointer_cast<Switch>(sw)->getPorts();
@@ -270,10 +270,98 @@ void SaveSolution::saveIni(const std::string &routeFileName,
     for (auto &es: input->esList) {
         for (auto &stream: input->streams) {
             if (stream->getSrc() == es) {
-                output << "**." << es->getName() << R"(.trafGenSchedApp.initialSchedule = xmldoc("xml/)"  << topology << "/"
+                output << "**." << es->getName() << R"(.trafGenSchedApp.initialSchedule = xmldoc("xml/)" << topology
+                       << "/"
                        << std::to_string(solution_id) << "_" << es->getName() << R"(.xml"))" << std::endl;
                 break;
             }
         }
     }
+}
+
+void SaveSolution::saveScheduleAndMiddleCost(const std::string &middleCostPath, size_t solutionId) {
+    std::string path = middleCostPath;
+    path.append(std::to_string(solutionId) + "_mid_cost_and_schedule.txt");
+    std::fstream midCostAndSchedule(path, std::fstream::out);
+    midCostAndSchedule << "[schedule]" << std::endl;
+    midCostAndSchedule
+            << "----------+---------------+---------------+---------------------+---------------+--------------------------------------------------------------------------------"
+            << std::endl;
+    midCostAndSchedule << std::right << std::setw(10) << "stream_id" << "|"
+                       << std::right << std::setw(15) << "period" << "|"
+                       << std::right << std::setw(15) << "offset" << "|"
+                       << std::right << std::setw(21) << "e2e/ddl" << "|"
+                       << std::right << std::setw(15) << "jitter" << "|"
+                       << std::left << std::setw(80) << "    route" << std::endl;
+    midCostAndSchedule
+            << "----------+---------------+---------------+---------------------+---------------+--------------------------------------------------------------------------------"
+            << std::endl;
+    for (const auto &[streamId, pos]: input->streamsId) {
+        auto stream = input->getStream(streamId);
+        midCostAndSchedule << std::right << std::setw(10) << streamId << "|"
+                           << std::right << std::setw(15) << stream->getPeriod() << "|"
+                           << std::right << std::setw(15) << p->offsets[pos] << "|";
+        if (stream->getPcp() == P6) {
+            midCostAndSchedule << std::right << std::setw(21) << c->ddlOrE2E[streamId] << "|";
+            midCostAndSchedule << std::right << std::setw(16) << "|";
+        } else if (stream->getPcp() == P5) {
+            midCostAndSchedule << std::right << std::setw(10) << *min_element(c->p5E2e[streamId].begin(), c->p5E2e[streamId].end()) << "/"
+                               << std::left << std::setw(10) << *max_element(c->p5E2e[streamId].begin(), c->p5E2e[streamId].end()) << "|";
+            midCostAndSchedule << std::right << std::setw(15) << c->cachedStreamJitter[streamId]<< "|";
+        }
+        midCostAndSchedule << std::left << "    " << stream->getRoutes()[p->routes[pos]]->toString() << std::endl;
+    }
+    midCostAndSchedule
+            << "----------+---------------+---------------+---------------------+---------------+--------------------------------------------------------------------------------"
+            << std::endl;
+    /* ========================================================================== */
+    midCostAndSchedule << "[hyper_period]" << std::endl;
+    midCostAndSchedule << "------------------------------+----------+--------------------" << std::endl;
+    midCostAndSchedule << std::left << std::setw(30) << "src --> dest" << "|"
+                       << std::right << std::setw(10) << "gcl_length" << "|"
+                       << std::right << std::setw(16) << "BPC" << std::endl;
+    midCostAndSchedule << "------------------------------+----------+--------------------" << std::endl;
+    for (const auto &[linkId, hyperperiod]: c->linkHyperperiod) {
+        midCostAndSchedule << std::left << std::setw(30) << input->getLinkStr(linkId) << "|"
+                           << std::right << std::setw(10) << c->linkGclSize[linkId] << "|"
+                           << std::right << std::setw(16) << hyperperiod << std::endl;
+    }
+    midCostAndSchedule << "------------------------------+----------+--------------------" << std::endl;
+    /* ========================================================================== */
+    midCostAndSchedule << "[group]" << std::endl;
+    midCostAndSchedule
+            << "----------+-----------------+--------------------------------------------------------------------------------"
+            << std::endl;
+    midCostAndSchedule << std::right << std::setw(10) << "group_id" << "|"
+                       << std::right << std::setw(17) << "group_hyperperiod" << "|"
+                       << std::left << std::setw(80) << "streams_id" << std::endl;
+    midCostAndSchedule
+            << "----------+-----------------+--------------------------------------------------------------------------------"
+            << std::endl;
+    for (const auto &[groupId, hyperperiod]: c->groupHyperPeriod) {
+        midCostAndSchedule << std::right << std::setw(10) << groupId << "|"
+                           << std::right << std::setw(17) << hyperperiod << "|";
+        midCostAndSchedule << std::left;
+        for (auto &streamId: c->groupStream[groupId])
+            midCostAndSchedule << streamId << ", ";
+        midCostAndSchedule << std::endl;
+    }
+    midCostAndSchedule
+            << "----------+-----------------+--------------------------------------------------------------------------------"
+            << std::endl;
+
+    midCostAndSchedule << "[gce_reuse]" << std::endl;
+    for (const auto &[linkId, reuseIntervals]: c->linkIntervalDuplex) {
+        for (const auto &[intervals, reusedStreamsInfo]: reuseIntervals) {
+            if (reusedStreamsInfo.size() > 1) {
+                midCostAndSchedule << input->getLinkStr(linkId) << std::endl;
+                midCostAndSchedule << "\t<" << get<0>(intervals) << ", " << get<1>(intervals) << ", "
+                                   << get<2>(intervals) << ">" << std::endl;
+                for (auto &[start, end, streamId]: reusedStreamsInfo) {
+                    midCostAndSchedule << "\t\t<" << start << ", " << end << ", " << streamId << ">" << std::endl;
+                }
+            }
+        }
+    }
+    midCostAndSchedule.close();
 }
