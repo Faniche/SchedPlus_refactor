@@ -47,7 +47,7 @@ struct MyMiddleCost {
 //    map<stream_id_t, map<link_id_t, int64_t>> streamReuseMapRecorder;
 
     /*   flow_id     snd_times   e2e  */
-    map<stream_id_t, vector<std::pair<uint64_t, uint64_t>>> p5_e2e;
+    map<stream_id_t, vector<sched_time_t>> p5E2e;
 
     /*   flow_id  jitter  */
     map<stream_id_t, double> cachedStreamJitter;
@@ -80,6 +80,8 @@ struct MyMiddleCost {
     double totalCache = 0;
 
     double totalGcl;
+
+    double longestGcl;
 
     std::pair<stream_id_t, double> maxJitter;
 //    double delayQueue = 0;
