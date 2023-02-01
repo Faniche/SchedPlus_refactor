@@ -56,6 +56,8 @@ public:
     std::shared_ptr<Stream> getStream(stream_id_t streamId);
 
     std::vector<std::shared_ptr<DirectedLink>> getRouteLinks(stream_id_t streamId, route_t routeId);
+
+    std::string getLinkStr(link_id_t linkId);
 };
 
 

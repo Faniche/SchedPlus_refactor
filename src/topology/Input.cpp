@@ -66,7 +66,7 @@ void Input::setDeliveryGuarantee(std::shared_ptr<Stream> stream) {
 
 void Input::saveStreams(const std::string &streamFilePath) {
     std::string file_path = streamFilePath;
-    file_path.append("streams.json");
+//    file_path.append("streams.json");
     std::ofstream oss(file_path);
     nlohmann::json jStreams;
     for (const auto &stream: streams) {
@@ -201,5 +201,16 @@ std::shared_ptr<Stream> Input::getStream(stream_id_t streamId) {
 
 std::vector<std::shared_ptr<DirectedLink>> Input::getRouteLinks(stream_id_t streamId, route_t routeId) {
     return streams[streamsId[streamId]]->getRoutes()[routeId]->getLinks();
+}
+
+std::string Input::getLinkStr(link_id_t linkId) {
+    std::string linkIdStr = "{";
+    auto &link = links[linkId];
+    linkIdStr.append(link->getSrcNode()->getName() + "[");
+    linkIdStr.append(std::to_string(link->getSrcPort()->getId()) + "]");
+    linkIdStr.append(" <--> ");
+    linkIdStr.append(link->getDestNode()->getName() + "[");
+    linkIdStr.append(std::to_string(link->getSrcPort()->getId()) + "]}");
+    return linkIdStr;
 }
 
