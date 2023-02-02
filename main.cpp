@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
     try {
         auto sink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
         auto console = std::make_shared<spdlog::logger>("console", sink);
-        console->set_level(spdlog::level::debug);
+        console->set_level(spdlog::level::info);
         spd::set_default_logger(console);
         spd::set_pattern("[%H:%M:%S] [%^%l%$] %s:%# %v");
         run(optionTopology, streamFilePath, optionStreamNumber, flagDebug, optionGenerationNumber, optionExecuteTimes, flagUseNoWait);
