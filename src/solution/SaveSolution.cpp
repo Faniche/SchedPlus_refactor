@@ -114,6 +114,8 @@ void SaveSolution::saveSwPortSchedule(const std::string &schedFileLocation) {
                     xcycle_time.set_value(cycTimeStr.c_str());
                     sched_time_t cur = 0;
                     for (const auto &[start, end, gsv]: c->linkInterval[linkId]) {
+                        if (gsv == "01100000")
+                            spdlog::get("console")->debug("{}:{} P5 and P6 open at same time", __FILE__, __LINE__);
                         sched_time_t gap = start - cur;
                         /* gap */
                         GateControlEntry gateControlEntry;
@@ -351,6 +353,7 @@ void SaveSolution::saveScheduleAndMiddleCost(const std::string &middleCostPath, 
             << std::endl;
 
     midCostAndSchedule << "[gce_reuse]" << std::endl;
+    midCostAndSchedule << "merge_count = " << c->mergeCount << std::endl;
     for (const auto &[linkId, reuseIntervals]: c->linkIntervalDuplex) {
         for (const auto &[intervals, reusedStreamsInfo]: reuseIntervals) {
             if (reusedStreamsInfo.size() > 1) {
