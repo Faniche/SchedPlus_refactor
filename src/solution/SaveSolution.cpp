@@ -303,13 +303,18 @@ void SaveSolution::saveScheduleAndMiddleCost(const std::string &middleCostPath, 
         midCostAndSchedule << std::right << std::setw(10) << streamId << "|"
                            << std::right << std::setw(15) << stream->getPeriod() << "|"
                            << std::right << std::setw(15) << p->offsets[pos] << "|";
-        if (stream->getPcp() == P6) {
+        if (!p->useNoWait) {
+            if (stream->getPcp() == P6) {
+                midCostAndSchedule << std::right << std::setw(21) << c->ddlOrE2E[streamId] << "|";
+                midCostAndSchedule << std::right << std::setw(16) << "0" << "|";
+            } else if (stream->getPcp() == P5) {
+                midCostAndSchedule << std::right << std::setw(10) << *min_element(c->p5E2e[streamId].begin(), c->p5E2e[streamId].end()) << "/"
+                                   << std::left << std::setw(10) << *max_element(c->p5E2e[streamId].begin(), c->p5E2e[streamId].end()) << "|";
+                midCostAndSchedule << std::right << std::setw(15) << c->cachedStreamJitter[streamId]<< "|";
+            }
+        } else {
             midCostAndSchedule << std::right << std::setw(21) << c->ddlOrE2E[streamId] << "|";
-            midCostAndSchedule << std::right << std::setw(16) << "|";
-        } else if (stream->getPcp() == P5) {
-            midCostAndSchedule << std::right << std::setw(10) << *min_element(c->p5E2e[streamId].begin(), c->p5E2e[streamId].end()) << "/"
-                               << std::left << std::setw(10) << *max_element(c->p5E2e[streamId].begin(), c->p5E2e[streamId].end()) << "|";
-            midCostAndSchedule << std::right << std::setw(15) << c->cachedStreamJitter[streamId]<< "|";
+            midCostAndSchedule << std::right << std::setw(16) << "0" << "|";
         }
         midCostAndSchedule << std::left << "    " << stream->getRoutes()[p->routes[pos]]->toString() << std::endl;
     }
