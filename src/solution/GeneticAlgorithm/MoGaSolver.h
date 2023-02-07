@@ -55,8 +55,6 @@ private:
 
     bool checkCollisionWithStream(const TtStreams &p, MyMiddleCost &c);
 
-    bool scheduleP5Help(const TtStreams &p, MyMiddleCost &c);
-
     bool scheduleP5(const TtStreams &p, MyMiddleCost &c);
 
     group_id_t getGrpIdOfStream(stream_id_t streamId, MyMiddleCost &c);

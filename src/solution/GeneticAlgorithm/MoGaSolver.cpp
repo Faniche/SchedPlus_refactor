@@ -52,7 +52,7 @@ void MoGaSolver::setEachHopStartTime(const TtStreams &p, MyMiddleCost &c) {
     for (const auto &[groupId, streamsInGroup]: c.groupStream) {
         for (const auto &streamId: streamsInGroup) {
             const auto &stream = input->getStream(streamId);
-            int pos = input->getStreamPos(streamId);
+            size_t pos = input->getStreamPos(streamId);
             if (!p.useNoWait && stream->getPcp() == P5)
                 continue;
             const auto &route = input->getRouteLinks(streamId, p.routes[pos]);
@@ -333,11 +333,6 @@ bool MoGaSolver::checkCollisionWithStream(const TtStreams &p, MyMiddleCost &c) {
     return true;
 }
 
-bool MoGaSolver::scheduleP5Help(const TtStreams &p, MyMiddleCost &c) {
-
-    return true;
-}
-
 bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
     c.totalCache = 0;
     c.mergeCount = 0;
@@ -542,8 +537,10 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
     /* get jitter of p5 traffic */
     for (auto &[streamId, sendIdxs]: c.p5TrafficOffsets) {
         vector<sched_time_t> e2e(sendIdxs.size(), 0);
+        size_t pos = input->getStreamPos(streamId);
+        sched_time_t period = input->getStream(streamId)->getPeriod();
         for (auto &[sendIdx, hop]: sendIdxs) {
-            sched_time_t start = get<0>(hop[0]);
+            sched_time_t start = p.offsets[pos] + sendIdx * period;
             sched_time_t end = get<0>(hop[hop.size() - 1]);
             e2e[sendIdx] = end - start;
         }
@@ -596,7 +593,7 @@ void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd
         for (size_t i = 1; i < streamsInGroup.size(); ++i) {
             stream_id_t streamId = streamsInGroup[i];
             const auto &stream = input->getStream(streamId);
-            int pos = input->getStreamPos(streamId);
+            size_t pos = input->getStreamPos(streamId);
             sched_time_t upperBound = stream->getPeriod()
                                       - stream->getSrc()->getDpr()
                                       - stream->getSrcTransmitDelay();
@@ -676,7 +673,7 @@ TtStreams MoGaSolver::mutate(
         for (size_t i = 1; i < streamsInGroup.size(); ++i) {
             stream_id_t streamId = streamsInGroup[i];
             const auto &stream = input->getStream(streamId);
-            int pos = input->getStreamPos(streamId);
+            size_t pos = input->getStreamPos(streamId);
             sched_time_t upperBound = stream->getPeriod()
                                       - stream->getSrc()->getDpr()
                                       - stream->getSrcTransmitDelay();
@@ -743,7 +740,7 @@ TtStreams MoGaSolver::crossover(const TtStreams &X1, const TtStreams &X2, const 
         for (size_t i = 1; i < streamsInGroup.size(); ++i) {
             stream_id_t streamId = streamsInGroup[i];
             const auto &stream = input->getStream(streamId);
-            int pos = input->getStreamPos(streamId);
+            size_t pos = input->getStreamPos(streamId);
             sched_time_t upperBound = stream->getPeriod()
                                       - stream->getSrc()->getDpr()
                                       - stream->getSrcTransmitDelay();

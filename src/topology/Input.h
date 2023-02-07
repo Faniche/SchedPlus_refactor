@@ -35,7 +35,7 @@ public:
     std::vector<std::shared_ptr<Node>> swList;
     std::map<link_id_t , std::shared_ptr<DirectedLink>> links;
     std::vector<std::shared_ptr<Stream>> streams;
-    std::map<stream_id_t, int> streamsId;
+    std::map<stream_id_t, size_t> streamsId;
     std::map<pcp_t , std::vector<stream_id_t>> streamsGroupByPcp;
     std::map<node_id_t, std::shared_ptr<Node>> nodeIdMap;
     std::map<std::string, std::shared_ptr<Node>> nodeNameMap;
@@ -51,7 +51,7 @@ public:
 
     void getAllRoutes(std::shared_ptr<Stream> &stream, Graph &graph);
 
-    int getStreamPos(stream_id_t streamId);
+    size_t getStreamPos(stream_id_t streamId);
 
     std::shared_ptr<Stream> getStream(stream_id_t streamId);
 

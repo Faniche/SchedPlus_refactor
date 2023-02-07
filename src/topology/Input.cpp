@@ -191,7 +191,7 @@ void Input::getAllRoutes(std::shared_ptr<Stream> &stream, Graph &graph) {
     stream->setRoutes(std::move(routes));
 }
 
-int Input::getStreamPos(stream_id_t streamId) {
+size_t Input::getStreamPos(stream_id_t streamId) {
     return streamsId[streamId];
 }
 
