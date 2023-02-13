@@ -214,3 +214,7 @@ std::string Input::getLinkStr(link_id_t linkId) {
     return linkIdStr;
 }
 
+void Input::setOptFlags(std::vector<bool> &&_optFlags) {
+    optFlags = std::move(_optFlags);
+}
+

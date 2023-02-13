@@ -40,6 +40,7 @@ public:
     std::map<node_id_t, std::shared_ptr<Node>> nodeIdMap;
     std::map<std::string, std::shared_ptr<Node>> nodeNameMap;
     sched_time_t hyperPeriod = 0;
+    std::vector<bool> optFlags;
 
     void saveStreams(const std::string& streamFilePath);
 
@@ -58,6 +59,8 @@ public:
     std::vector<std::shared_ptr<DirectedLink>> getRouteLinks(stream_id_t streamId, route_t routeId);
 
     std::string getLinkStr(link_id_t linkId);
+
+    void setOptFlags(std::vector<bool> &&_optFlags);
 };
 
 

@@ -772,14 +772,55 @@ TtStreams MoGaSolver::crossover(const TtStreams &X1, const TtStreams &X2, const 
 }
 
 vector<double> MoGaSolver::calculate_MO_objectives(const GA_Type::thisChromosomeType &X) {
-    return {
-            X.middle_costs.totalGcl,
-//            X.middle_costs.maxJitter.second,
-            X.middle_costs.groupSize,
-            X.middle_costs.totalCache,
-            X.middle_costs.longestGcl,
-            1.0 / X.middle_costs.mergeCount
-    };
+    if (input->optFlags[0]) {
+        return {
+//                X.middle_costs.totalGcl,
+                X.middle_costs.groupSize,
+                X.middle_costs.totalCache,
+                X.middle_costs.longestGcl,
+                1.0 / X.middle_costs.mergeCount
+        };
+    } else if (input->optFlags[1]) {
+        return {
+                X.middle_costs.totalGcl,
+//                X.middle_costs.groupSize,
+                X.middle_costs.totalCache,
+                X.middle_costs.longestGcl,
+                1.0 / X.middle_costs.mergeCount
+        };
+    } else if (input->optFlags[2]) {
+        return {
+                X.middle_costs.totalGcl,
+                X.middle_costs.groupSize,
+//                X.middle_costs.totalCache,
+                X.middle_costs.longestGcl,
+                1.0 / X.middle_costs.mergeCount
+        };
+    } else if (input->optFlags[3]) {
+        return {
+                X.middle_costs.totalGcl,
+                X.middle_costs.groupSize,
+                X.middle_costs.totalCache,
+//                X.middle_costs.longestGcl,
+                1.0 / X.middle_costs.mergeCount
+        };
+    } else if (input->optFlags[4]) {
+        return {
+                X.middle_costs.totalGcl,
+                X.middle_costs.groupSize,
+                X.middle_costs.totalCache,
+                X.middle_costs.longestGcl,
+//                1.0 / X.middle_costs.mergeCount
+        };
+    } else {
+        return {
+                X.middle_costs.totalGcl,
+                X.middle_costs.groupSize,
+                X.middle_costs.totalCache,
+                X.middle_costs.longestGcl,
+                1.0 / X.middle_costs.mergeCount
+        };
+    }
 }
 
 void MoGaSolver::MO_report_generation(

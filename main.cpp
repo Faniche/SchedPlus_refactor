@@ -28,7 +28,8 @@ void run(int optionTopology,
          bool flagDebug,
          int generationNumber,
          int optionExecuteTimes,
-         bool flagUseNoWait) {
+         bool flagUseNoWait,
+         std::vector<bool> &&optFlags) {
     std::shared_ptr<Input> input;
     std::string savePath = "SolutionReport/";
     std::string topology;
@@ -53,6 +54,7 @@ void run(int optionTopology,
             exit(EXIT_FAILURE);
     }
     input->setNodesAndLinks();
+    input->setOptFlags(std::move(optFlags));
     if (!streamFilePath.empty() && optionStreamNumber != 0) {
         spdlog::get("console")->error("{}:{}: input error", __FILE__, __LINE__);
     } else if (!streamFilePath.empty()) {
@@ -99,11 +101,30 @@ int main(int argc, char **argv) {
     app.add_flag("-d, --debug", flagDebug, "debug mode");
     bool flagUseNoWait = {false};
     app.add_flag("-n, --nowait", flagUseNoWait, "use no_wait schedule or IMIR");
+
+    bool flagNoTotalGcl = {false};
+    // app.add_flag("-ntg, --no-total-gcl", flagNoTotalGcl, "use no_wait schedule or IMIR");
+    app.add_flag("--no-total-gcl", flagNoTotalGcl, "use no_wait schedule or IMIR");
+    bool flagNoGroupSize = {false};
+    // app.add_flag("-ng, --no-group-size", flagNoGroupSize, "use no_wait schedule or IMIR");
+    app.add_flag("--no-group-size", flagNoGroupSize, "use no_wait schedule or IMIR");
+    bool flagNoTotalCache = {false};
+    // app.add_flag("-ntc, --no-total-cache", flagNoTotalCache, "use no_wait schedule or IMIR");
+    app.add_flag("--no-total-cache", flagNoTotalCache, "use no_wait schedule or IMIR");
+    bool flagNoLongestGcl = {false};
+    // app.add_flag("-nlg, --no-longest-gcl", flagNoLongestGcl, "use no_wait schedule or IMIR");
+    app.add_flag("--no-longest-gcl", flagNoLongestGcl, "use no_wait schedule or IMIR");
+    bool flagNoMergeCount = {false};
+    // app.add_flag("-nmc, --no-merge-count", flagNoMergeCount, "use no_wait schedule or IMIR");
+    app.add_flag("--no-merge-count", flagNoMergeCount, "use no_wait schedule or IMIR");
+
     try {
         CLI11_PARSE(app, argc, argv);
     } catch (CLI::ParseError &error) {
         app.exit(error);
     }
+
+    std::vector<bool> optFlags{flagNoTotalGcl, flagNoGroupSize, flagNoTotalCache, flagNoLongestGcl, flagNoMergeCount};
 
     try {
         auto sink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
@@ -111,7 +132,7 @@ int main(int argc, char **argv) {
         console->set_level(spdlog::level::info);
         spd::set_default_logger(console);
         spd::set_pattern("[%H:%M:%S] [%^%l%$] %s:%# %v");
-        run(optionTopology, streamFilePath, optionStreamNumber, flagDebug, optionGenerationNumber, optionExecuteTimes, flagUseNoWait);
+        run(optionTopology, streamFilePath, optionStreamNumber, flagDebug, optionGenerationNumber, optionExecuteTimes, flagUseNoWait, std::move(optFlags));
     } catch (const spdlog::spdlog_ex &ex) {
 
         std::cout << "Log init failed: " << ex.what() << std::endl;
