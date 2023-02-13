@@ -40,7 +40,6 @@ target_link_libraries(SchedPlus PUBLIC
         "${PROJECT_SOURCE_DIR}/lib/spdlog/build/libspdlog.a"
         pthread
         CLI11::CLI11)
-#        z3)
 
 target_include_directories(SchedPlus PUBLIC lib/spdlog/include)
 
