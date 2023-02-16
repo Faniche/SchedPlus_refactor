@@ -14,6 +14,8 @@
 class Line_2sw_2es: public Input{
 private:
     void vSetNodesAndLinks() override;
+
+    void vSetStreams() override;
 };
 
 

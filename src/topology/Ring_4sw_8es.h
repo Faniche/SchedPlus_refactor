@@ -14,6 +14,8 @@
 class Ring_4sw_8es: public Input {
 private:
     void vSetNodesAndLinks() override;
+
+    void vSetStreams() override;
 };
 
 

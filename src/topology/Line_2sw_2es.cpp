@@ -44,3 +44,7 @@ void Line_2sw_2es::vSetNodesAndLinks() {
         nodeNameMap.emplace(nodes[i]->getName(), nodes[i]);
     }
 }
+
+void Line_2sw_2es::vSetStreams() {
+
+}

@@ -13,6 +13,10 @@
 class Tree_7sw_21es: public Input {
 private:
     void vSetNodesAndLinks() override;
+
+    void vSetStreams() override;
+
+    void finishStreamInit(Graph &graph, std::shared_ptr<Stream>& stream);
 };
 
 

@@ -151,6 +151,10 @@ void Input::setStreams(const std::string& streamFilePath) {
     setHyperPeriod();
 }
 
+void Input::setStreams() {
+    vSetStreams();
+}
+
 void Input::getAllRoutes(std::shared_ptr<Stream> &stream, Graph &graph) {
     node_id_t srcIdx = stream->getSrc()->getId();
     if (srcIdx == INT32_MAX)

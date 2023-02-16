@@ -217,3 +217,7 @@ void Snow_7sw_18es::vSetNodesAndLinks() {
         nodeNameMap.emplace(nodes[i]->getName(), nodes[i]);
     }
 }
+
+void Snow_7sw_18es::vSetStreams() {
+
+}

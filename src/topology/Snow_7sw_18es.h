@@ -13,6 +13,8 @@
 class Snow_7sw_18es: public Input {
 private:
     void vSetNodesAndLinks() override;
+
+    void vSetStreams() override;
 };
 
 

@@ -102,3 +102,7 @@ void Ring_4sw_8es::vSetNodesAndLinks() {
         nodeNameMap.emplace(node->getName(), node);
     }
 }
+
+void Ring_4sw_8es::vSetStreams() {
+
+}
