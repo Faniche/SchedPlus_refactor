@@ -104,7 +104,7 @@ void Tree_7sw_21es::vSetStreams() {
     stream_id_t streamId = 0;
     /* [es09 ~ es20] -> [es00 ~ es02]*/
     for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
-        for (node_id_t dest = 0; dest <= 2; ++dest) {
+        for (node_id_t dest = nodeNameMap["es00"]->getId(); dest <= nodeNameMap["es02"]->getId(); ++dest) {
             sched_time_t period = 0;
             uint32_t length = 0;
             if (dest == 0) {
@@ -120,7 +120,7 @@ void Tree_7sw_21es::vSetStreams() {
             auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[src], nodeIdMap[dest]);
             finishStreamInit(graph, stream);
         }
-        for (node_id_t dest = 0; dest <= 2; ++dest) {
+        for (node_id_t dest = nodeNameMap["es00"]->getId(); dest <= nodeNameMap["es02"]->getId(); ++dest) {
             sched_time_t period = 0;
             uint32_t length = 0;
             if (dest == 0) {
@@ -140,7 +140,7 @@ void Tree_7sw_21es::vSetStreams() {
 
     /* [es09 ~ es14] -> [es03 ~ es05]*/
     for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es14"]->getId(); ++src) {
-        for (node_id_t dest = 3; dest <= 5; ++dest) {
+        for (node_id_t dest = nodeNameMap["es03"]->getId(); dest <= nodeNameMap["es05"]->getId(); ++dest) {
             sched_time_t period = 0;
             uint32_t length = 0;
             if (dest == 0) {
@@ -153,30 +153,30 @@ void Tree_7sw_21es::vSetStreams() {
                 period = 8000000;
                 length = 600;
             }
-            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[dest], nodeIdMap[src]);
+            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[src], nodeIdMap[dest]);
             finishStreamInit(graph, stream);
         }
-        for (node_id_t dest = 3; dest <= 5; ++dest) {
+        for (node_id_t dest = nodeNameMap["es03"]->getId(); dest <= nodeNameMap["es05"]->getId(); ++dest) {
             sched_time_t period = 0;
             uint32_t length = 0;
             if (dest == 0) {
-                period = 2000000;
+                period = 8000000;
                 length = 250;
             } else if (dest == 1) {
-                period = 4000000;
+                period = 16000000;
                 length = 350;
             } else {
-                period = 4000000;
+                period = 16000000;
                 length = 300;
             }
-            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[src], nodeIdMap[dest]);
+            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[dest], nodeIdMap[src]);
             finishStreamInit(graph, stream);
         }
     }
 
     /* [es15 ~ es20] -> [es06 ~ es08]*/
     for (node_id_t src = nodeNameMap["es15"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
-        for (node_id_t dest = 6; dest <= 8; ++dest) {
+        for (node_id_t dest = nodeNameMap["es06"]->getId(); dest <= nodeNameMap["es08"]->getId(); ++dest) {
             sched_time_t period = 0;
             uint32_t length = 0;
             if (dest == 0) {
@@ -189,23 +189,23 @@ void Tree_7sw_21es::vSetStreams() {
                 period = 8000000;
                 length = 600;
             }
-            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[dest], nodeIdMap[src]);
+            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[src], nodeIdMap[dest]);
             finishStreamInit(graph, stream);
         }
-        for (node_id_t dest = 3; dest <= 5; ++dest) {
+        for (node_id_t dest = nodeNameMap["es06"]->getId(); dest <= nodeNameMap["es08"]->getId(); ++dest) {
             sched_time_t period = 0;
             uint32_t length = 0;
             if (dest == 0) {
-                period = 2000000;
+                period = 8000000;
                 length = 250;
             } else if (dest == 1) {
-                period = 4000000;
+                period = 16000000;
                 length = 350;
             } else {
-                period = 4000000;
+                period = 16000000;
                 length = 300;
             }
-            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[src], nodeIdMap[dest]);
+            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[dest], nodeIdMap[src]);
             finishStreamInit(graph, stream);
         }
     }
@@ -219,14 +219,14 @@ void Tree_7sw_21es::vSetStreams() {
                         ++streamId,
                         500000,
                         80,
-                        P5, nodeIdMap[src], nodeIdMap[dest]);
+                        P6, nodeIdMap[src], nodeIdMap[dest]);
                 finishStreamInit(graph, stream);
                 dest = src + 2;
                 stream = std::make_shared<Stream>(
                         ++streamId,
                         600000,
                         50,
-                        P5, nodeIdMap[src], nodeIdMap[dest]);
+                        P6, nodeIdMap[src], nodeIdMap[dest]);
                 finishStreamInit(graph, stream);
             } else if (src % 3 == 1) {
                 node_id_t dest = src - 1;
@@ -234,14 +234,14 @@ void Tree_7sw_21es::vSetStreams() {
                         ++streamId,
                         500000,
                         80,
-                        P5, nodeIdMap[src], nodeIdMap[dest]);
+                        P6, nodeIdMap[src], nodeIdMap[dest]);
                 finishStreamInit(graph, stream);
                 dest = src + 1;
                 stream = std::make_shared<Stream>(
                         ++streamId,
                         600000,
                         50,
-                        P5, nodeIdMap[src], nodeIdMap[dest]);
+                        P6, nodeIdMap[src], nodeIdMap[dest]);
                 finishStreamInit(graph, stream);
             } else {
                 node_id_t dest = src - 1;
@@ -249,14 +249,14 @@ void Tree_7sw_21es::vSetStreams() {
                         ++streamId,
                         500000,
                         80,
-                        P5, nodeIdMap[src], nodeIdMap[dest]);
+                        P6, nodeIdMap[src], nodeIdMap[dest]);
                 finishStreamInit(graph, stream);
                 dest = src - 2;
                 stream = std::make_shared<Stream>(
                         ++streamId,
                         600000,
                         50,
-                        P5, nodeIdMap[src], nodeIdMap[dest]);
+                        P6, nodeIdMap[src], nodeIdMap[dest]);
                 finishStreamInit(graph, stream);
             }
         }

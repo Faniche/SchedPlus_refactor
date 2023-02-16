@@ -365,6 +365,10 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
                         return false;
                     auto newGce = std::make_tuple(siStart, siEnd, "00100000");
                     bool hasMoveBack = false;
+                    if (c.linkInterval.empty()) {
+                        c.linkInterval[linkId].emplace(newGce);
+                        c.linkIntervalDuplex[linkId][newGce].emplace(send, send + transmitDelay, streamId);
+                    } else {
                     for (auto iter = c.linkInterval[linkId].begin(); iter != c.linkInterval[linkId].end(); ++iter) {
                         sched_time_t sjStart = get<0>(*iter);
                         sched_time_t sjEnd = get<1>(*iter);
@@ -506,7 +510,7 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
                             break;
                         }
                     }
-
+                    }
                     c.p5TrafficOffsets[streamId][j][i] = std::make_tuple(send, send % c.linkHyperperiod[linkId],
                                                                          transmitDelay);
                     if (i + 1 == route.size()) {
@@ -615,7 +619,7 @@ void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd
 }
 
 bool MoGaSolver::eval_solution(const TtStreams &p, MyMiddleCost &c) {
-    if (ga_obj.generation_step > 0 && timer.toc() > 3600) {
+    if (ga_obj.generation_step > 0 && timer.toc() > ga_obj.last_generation.exe_time + 600) {
         ga_obj.user_request_stop = true;
         return true;
     }
