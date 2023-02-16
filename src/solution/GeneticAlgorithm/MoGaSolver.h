@@ -17,6 +17,10 @@ typedef EA::GenerationType<TtStreams, MyMiddleCost> Generation_Type;
 
 class MoGaSolver : public Solver {
 private:
+    GA_Type ga_obj;
+
+    EA::Chronometer timer;
+
     std::shared_ptr<Input> input;
 
     bool debug;
@@ -26,10 +30,6 @@ private:
     bool flagUseNoWait;
 
     void vSolve(const std::string &path, int32_t runId) override;
-
-
-
-
 
     void setEachHopStartTime(const TtStreams &p, MyMiddleCost &c);
 

@@ -17,7 +17,6 @@ MoGaSolver::MoGaSolver(std::shared_ptr<Input> _input,
         flagUseNoWait(_flagUseNoWait) {}
 
 void MoGaSolver::vSolve(const std::string &path, int32_t runId) {
-    GA_Type ga_obj;
     ga_obj.problem_mode = EA::GA_MODE::NSGA_III;
     ga_obj.multi_threading = !debug;
     ga_obj.dynamic_threading = !debug;
@@ -39,7 +38,6 @@ void MoGaSolver::vSolve(const std::string &path, int32_t runId) {
     // SolutionReport/line_2sw_2es/10/IMIR/
     std::string runInfo = path.substr(path.find_first_of('/'), path.size() - path.find_first_of('/'));
     spdlog::get("console")->info("run info: {}{}", runInfo, runId);
-    EA::Chronometer timer;
     timer.tic();
     ga_obj.solve();
     double cost = timer.toc();
@@ -617,6 +615,10 @@ void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd
 }
 
 bool MoGaSolver::eval_solution(const TtStreams &p, MyMiddleCost &c) {
+    if (ga_obj.generation_step > 0 && timer.toc() > 3600) {
+        ga_obj.user_request_stop = true;
+        return true;
+    }
     c.groupStream = p.groupStream;
     groupStreamsEval(p.routes, c);
     setEachHopStartTime(p, c);
@@ -828,6 +830,8 @@ void MoGaSolver::MO_report_generation(
         const EA::GenerationType<TtStreams, MyMiddleCost> &last_generation,
         const vector<unsigned int> &pareto_front) {
     (void) last_generation;
+    if (ga_obj.generation_step == 0 && last_generation.exe_time > 1800)
+        ga_obj.user_request_stop = true;
     std::cout << "Generation [" << generation_number << "], ";
     std::cout << "Pareto-Front {";
     for (unsigned int i = 0; i < pareto_front.size(); i++) {
