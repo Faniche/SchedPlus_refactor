@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# no totalGcl
+./SchedPlus -f 60 -t 4 -e 10 -g 50 --no-total-gcl
+# no groupSize
+./SchedPlus -f 60 -t 4 -e 10 -g 50 --no-group-size
+# no totalCache
+./SchedPlus -f 60 -t 4 -e 10 -g 50 --no-total-cache
+# no longestGcl
+./SchedPlus -f 60 -t 4 -e 10 -g 50 --no-longest-gcl
+# no mergeCount
+./SchedPlus -f 60 -t 4 -e 10 -g 50 --no-merge-count
