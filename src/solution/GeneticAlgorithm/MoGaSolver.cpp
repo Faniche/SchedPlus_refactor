@@ -553,10 +553,11 @@ bool MoGaSolver::scheduleP5(const TtStreams &p, MyMiddleCost &c) {
         }
         if (totalDiff == 0)
             c.cachedStreamJitter[streamId] = 0;
-        c.cachedStreamJitter[streamId] = totalDiff / (e2e.size() - 1);
+        else
+            c.cachedStreamJitter[streamId] = totalDiff / (e2e.size() - 1);
         c.p5E2e[streamId] = e2e;
     }
-    c.maxJitter = std::make_pair(0, -1);
+    c.maxJitter = std::make_pair(0, 0);
     for (const auto &item: c.cachedStreamJitter) {
         if (item.second > c.maxJitter.second)
             c.maxJitter = item;
@@ -620,6 +621,7 @@ void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd
 
 bool MoGaSolver::eval_solution(const TtStreams &p, MyMiddleCost &c) {
     if (ga_obj.generation_step > 0 && timer.toc() > ga_obj.last_generation.exe_time + 600) {
+        spdlog::get("console")->info("generation[{}] mutate and crossover timeout", ga_obj.generation_step);
         ga_obj.user_request_stop = true;
         return true;
     }
@@ -834,10 +836,12 @@ void MoGaSolver::MO_report_generation(
         const EA::GenerationType<TtStreams, MyMiddleCost> &last_generation,
         const vector<unsigned int> &pareto_front) {
     (void) last_generation;
-    if (ga_obj.generation_step == 0 && last_generation.exe_time > 1800)
+    if (ga_obj.generation_step == 0 && last_generation.exe_time > 1800) {
         ga_obj.user_request_stop = true;
-    std::cout << "Generation [" << generation_number << "], ";
-    std::cout << "Pareto-Front {";
+        spdlog::get("console")->info("generation0 takes {} seconds, set user_request_stop to true", last_generation.exe_time);
+    }
+    spdlog::get("console")->info("Generation [{}]", generation_number);
+    std::cout << "\tPareto-Front {";
     for (unsigned int i = 0; i < pareto_front.size(); i++) {
         std::cout << (i > 0 ? "," : "");
         std::cout << pareto_front[i];
@@ -908,13 +912,6 @@ void MoGaSolver::save_results(GA_Type &ga_obj, const std::string &path, int32_t 
         saveSolution.saveIni(routeFileName, gclFileName, iniFile, topology, i);
 
         saveSolution.saveScheduleAndMiddleCost(solutionPath, i);
-//        std::string event_file = OUT_LOCATION_WAIT;
-//        event_file.append("/" + std::to_string(i) + "_event.txt");
-//        saveSolution.saveEvent(X.genes, X.middle_costs, event_file);
-
-
-
     }
     resultSummary.close();
-//    out_file_offset_route.close();
 }
