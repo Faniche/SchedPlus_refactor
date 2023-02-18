@@ -846,8 +846,8 @@ void MoGaSolver::MO_report_generation(
     if (ga_obj.generation_step == 0 && last_generation.exe_time > optionInitExecuteTimeOut) {
         ga_obj.user_request_stop = true;
         spdlog::get("console")->info("generation0 takes {} seconds, set user_request_stop to true", last_generation.exe_time);
-    }
-    spdlog::get("console")->info("Generation [{}]", generation_number);
+    } else
+        spdlog::get("console")->info("Generation [{}] takes {} seconds.", generation_number, last_generation.exe_time);
     std::cout << "\tPareto-Front {";
     for (unsigned int i = 0; i < pareto_front.size(); i++) {
         std::cout << (i > 0 ? "," : "");
