@@ -21,7 +21,13 @@ private:
 
     EA::Chronometer timer;
 
+    double accTime;
+
     std::shared_ptr<Input> input;
+
+    int optionInitExecuteTimeOut;
+
+    int optionEvalExecuteTimeOut;
 
     bool debug;
 
@@ -60,7 +66,7 @@ private:
     group_id_t getGrpIdOfStream(stream_id_t streamId, MyMiddleCost &c);
 
 public:
-    explicit MoGaSolver(std::shared_ptr<Input> _input, bool _debug, int _generations, bool _flagUseNoWait);
+    explicit MoGaSolver(std::shared_ptr<Input> _input, int _optionInitExecuteTimeOut, int _optionEvalExecuteTimeOut, bool _debug, int _generations, bool _flagUseNoWait);
 
     void init_genes(TtStreams &p, const std::function<double(void)> &rnd01);
 

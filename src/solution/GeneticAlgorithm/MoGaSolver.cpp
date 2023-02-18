@@ -8,13 +8,19 @@
 #include "../SaveSolution.h"
 
 MoGaSolver::MoGaSolver(std::shared_ptr<Input> _input,
+                       int _optionInitExecuteTimeOut,
+                       int _optionEvalExecuteTimeOut,
                        bool _debug = false,
                        int _generations = 100,
                        bool _flagUseNoWait = false) :
         input(std::move(_input)),
+        optionInitExecuteTimeOut(_optionInitExecuteTimeOut),
+        optionEvalExecuteTimeOut(_optionEvalExecuteTimeOut),
         debug(_debug),
         generations(_generations),
-        flagUseNoWait(_flagUseNoWait) {}
+        flagUseNoWait(_flagUseNoWait){
+    accTime = 0;
+}
 
 void MoGaSolver::vSolve(const std::string &path, int32_t runId) {
     ga_obj.problem_mode = EA::GA_MODE::NSGA_III;
@@ -620,7 +626,7 @@ void MoGaSolver::init_genes(TtStreams &p, const std::function<double(void)> &rnd
 }
 
 bool MoGaSolver::eval_solution(const TtStreams &p, MyMiddleCost &c) {
-    if (ga_obj.generation_step > 0 && timer.toc() > ga_obj.last_generation.exe_time + 600) {
+    if (ga_obj.generation_step > 0 && timer.toc() > accTime + optionEvalExecuteTimeOut) {
         spdlog::get("console")->info("generation[{}] mutate and crossover timeout", ga_obj.generation_step);
         ga_obj.user_request_stop = true;
         return true;
@@ -836,7 +842,8 @@ void MoGaSolver::MO_report_generation(
         const EA::GenerationType<TtStreams, MyMiddleCost> &last_generation,
         const vector<unsigned int> &pareto_front) {
     (void) last_generation;
-    if (ga_obj.generation_step == 0 && last_generation.exe_time > 1800) {
+    accTime += last_generation.exe_time;
+    if (ga_obj.generation_step == 0 && last_generation.exe_time > optionInitExecuteTimeOut) {
         ga_obj.user_request_stop = true;
         spdlog::get("console")->info("generation0 takes {} seconds, set user_request_stop to true", last_generation.exe_time);
     }

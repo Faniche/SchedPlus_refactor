@@ -28,6 +28,8 @@ void run(int optionTopology,
          bool flagDebug,
          int generationNumber,
          int optionExecuteTimes,
+         int optionInitExecuteTimeOut,
+         int optionEvalExecuteTimeOut,
          bool flagUseNoWait,
          std::vector<bool> &&optFlags) {
     std::shared_ptr<Input> input;
@@ -80,7 +82,7 @@ void run(int optionTopology,
     if(streamFilePath.empty())
         input->saveStreams(streamsSavePath);
     for (int i = 0; i < optionExecuteTimes; ++i) {
-        auto gaSolver = std::make_unique<MoGaSolver>(input, flagDebug, generationNumber, flagUseNoWait);
+        auto gaSolver = std::make_unique<MoGaSolver>(input, optionInitExecuteTimeOut, optionEvalExecuteTimeOut, flagDebug, generationNumber, flagUseNoWait);
         gaSolver->solve(savePath, i);
     }
 }
@@ -100,6 +102,10 @@ int main(int argc, char **argv) {
     app.add_option("-g, --generation", optionGenerationNumber, "The number of generation");
     int optionExecuteTimes = 10;
     app.add_option("-e, --execute", optionExecuteTimes, "The execute times");
+    int optionInitExecuteTimeOut = 1800;
+    app.add_option("--init-timeout", optionInitExecuteTimeOut, "The execute times");
+    int optionEvalExecuteTimeOut = 600;
+    app.add_option("--eval-timeout", optionEvalExecuteTimeOut, "The execute times");
     bool flagDebug = {false};
     app.add_flag("-d, --debug", flagDebug, "debug mode");
     bool flagUseNoWait = {false};
@@ -135,7 +141,7 @@ int main(int argc, char **argv) {
         console->set_level(spdlog::level::info);
         spd::set_default_logger(console);
         spd::set_pattern("[%H:%M:%S] [%^%l%$] %s:%# %v");
-        run(optionTopology, streamFilePath, optionStreamNumber, flagDebug, optionGenerationNumber, optionExecuteTimes, flagUseNoWait, std::move(optFlags));
+        run(optionTopology, streamFilePath, optionStreamNumber, flagDebug, optionGenerationNumber, optionExecuteTimes, optionInitExecuteTimeOut, optionEvalExecuteTimeOut, flagUseNoWait, std::move(optFlags));
     } catch (const spdlog::spdlog_ex &ex) {
 
         std::cout << "Log init failed: " << ex.what() << std::endl;
