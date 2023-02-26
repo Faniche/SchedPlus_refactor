@@ -14,7 +14,7 @@ class Snow_7sw_18es: public Input {
 private:
     void vSetNodesAndLinks() override;
 
-    void vSetStreams() override;
+    void vSetStreams(size_t streamsNum, std::string topology) override;
 };
 
 

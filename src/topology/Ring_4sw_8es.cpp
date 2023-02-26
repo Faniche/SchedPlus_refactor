@@ -103,6 +103,6 @@ void Ring_4sw_8es::vSetNodesAndLinks() {
     }
 }
 
-void Ring_4sw_8es::vSetStreams() {
+void Ring_4sw_8es::vSetStreams(size_t streamsNum, std::string topology) {
 
 }

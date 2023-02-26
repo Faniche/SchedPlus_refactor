@@ -151,8 +151,8 @@ void Input::setStreams(const std::string& streamFilePath) {
     setHyperPeriod();
 }
 
-void Input::setStreams() {
-    vSetStreams();
+void Input::setStreams(size_t streamsNum, std::string topology) {
+    vSetStreams(streamsNum, topology);
 }
 
 void Input::getAllRoutes(std::shared_ptr<Stream> &stream, Graph &graph) {

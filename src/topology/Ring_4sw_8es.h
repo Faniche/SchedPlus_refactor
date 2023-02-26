@@ -15,7 +15,7 @@ class Ring_4sw_8es: public Input {
 private:
     void vSetNodesAndLinks() override;
 
-    void vSetStreams() override;
+    void vSetStreams(size_t streamsNum, std::string topology) override;
 };
 
 

@@ -62,12 +62,15 @@ void run(int optionTopology,
     } else if (!streamFilePath.empty()) {
         input->setStreams(streamFilePath);
     } else if (optionStreamNumber != 0) {
-        input->setStreams(optionStreamNumber);
+        if (optionTopology == 3)
+            input->setStreams(optionStreamNumber, TREE_7SW_21ES);
+        else
+            input->setStreams(optionStreamNumber);
     } else {
         /* tree topology and set fixed streams */
         if (optionTopology != 3)
             spdlog::get("console")->error("{}:{}: input error", __FILE__, __LINE__);
-        input->setStreams();
+
     }
     savePath.append(topology + "/" + std::to_string(input->streams.size()) + "/");
     std::string streamsSavePath = savePath;

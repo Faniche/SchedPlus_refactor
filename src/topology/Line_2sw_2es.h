@@ -15,7 +15,7 @@ class Line_2sw_2es: public Input{
 private:
     void vSetNodesAndLinks() override;
 
-    void vSetStreams() override;
+    void vSetStreams(size_t streamsNum, std::string topology) override;
 };
 
 

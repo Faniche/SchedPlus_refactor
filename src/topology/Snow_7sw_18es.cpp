@@ -218,6 +218,6 @@ void Snow_7sw_18es::vSetNodesAndLinks() {
     }
 }
 
-void Snow_7sw_18es::vSetStreams() {
+void Snow_7sw_18es::vSetStreams(size_t streamsNum, std::string topology) {
 
 }

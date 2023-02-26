@@ -21,14 +21,14 @@ class Input {
 private:
     virtual void vSetNodesAndLinks() = 0;
 
-    virtual void vSetStreams() = 0;
-
-    int getRandInt(int min, int max);
+    virtual void vSetStreams(size_t streamsNum, std::string topology) = 0;
 
 protected:
     void setDeliveryGuarantee(std::shared_ptr<Stream> stream);
 
     void setHyperPeriod();
+
+    int getRandInt(int min, int max);
 
 public:
     std::vector<std::shared_ptr<Node>> nodes;
@@ -49,7 +49,7 @@ public:
 
     void setStreams(size_t streamsNum);
 
-    void setStreams();
+    void setStreams(size_t streamsNum, std::string topology);
 
     void setStreams(const std::string& streamFilePath);
 

@@ -45,6 +45,6 @@ void Line_2sw_2es::vSetNodesAndLinks() {
     }
 }
 
-void Line_2sw_2es::vSetStreams() {
+void Line_2sw_2es::vSetStreams(size_t streamsNum, std::string topology) {
 
 }

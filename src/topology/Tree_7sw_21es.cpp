@@ -35,57 +35,90 @@ void Tree_7sw_21es::vSetNodesAndLinks() {
     auto sw5 = std::make_shared<Switch>("switch5", 20000);
     auto sw6 = std::make_shared<Switch>("switch6", 20000);
     nodes.insert(nodes.begin(), {es00, es01, es02, es03, es04, es05, es06,
-                                           es07, es08, es09, es10, es11, es12, es13,
-                                           es14, es15, es16, es17, es18, es19, es20,
-                                           sw0, sw1, sw2, sw3, sw4, sw5, sw6});
+                                 es07, es08, es09, es10, es11, es12, es13,
+                                 es14, es15, es16, es17, es18, es19, es20,
+                                 sw0, sw1, sw2, sw3, sw4, sw5, sw6});
     esList.insert(esList.begin(), {es00, es01, es02, es03, es04, es05, es06,
                                    es07, es08, es09, es10, es11, es12, es13,
                                    es14, es15, es16, es17, es18, es19, es20});
     swList.insert(swList.begin(), {sw0, sw1, sw2, sw3, sw4, sw5, sw6});
 
-    FullDuplexLink fdLink00(std::static_pointer_cast<Node>(es00), std::static_pointer_cast<Node>(sw0), es00->getPort(), std::const_pointer_cast<Port>(sw0->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink01(std::static_pointer_cast<Node>(es01), std::static_pointer_cast<Node>(sw0), es01->getPort(), std::const_pointer_cast<Port>(sw0->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink02(std::static_pointer_cast<Node>(es02), std::static_pointer_cast<Node>(sw0), es02->getPort(), std::const_pointer_cast<Port>(sw0->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink00(std::static_pointer_cast<Node>(es00), std::static_pointer_cast<Node>(sw0), es00->getPort(),
+                            std::const_pointer_cast<Port>(sw0->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink01(std::static_pointer_cast<Node>(es01), std::static_pointer_cast<Node>(sw0), es01->getPort(),
+                            std::const_pointer_cast<Port>(sw0->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink02(std::static_pointer_cast<Node>(es02), std::static_pointer_cast<Node>(sw0), es02->getPort(),
+                            std::const_pointer_cast<Port>(sw0->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
 
-    FullDuplexLink fdLink03(std::static_pointer_cast<Node>(es03), std::static_pointer_cast<Node>(sw1), es03->getPort(), std::const_pointer_cast<Port>(sw1->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink04(std::static_pointer_cast<Node>(es04), std::static_pointer_cast<Node>(sw1), es04->getPort(), std::const_pointer_cast<Port>(sw1->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink05(std::static_pointer_cast<Node>(es05), std::static_pointer_cast<Node>(sw1), es05->getPort(), std::const_pointer_cast<Port>(sw1->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink03(std::static_pointer_cast<Node>(es03), std::static_pointer_cast<Node>(sw1), es03->getPort(),
+                            std::const_pointer_cast<Port>(sw1->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink04(std::static_pointer_cast<Node>(es04), std::static_pointer_cast<Node>(sw1), es04->getPort(),
+                            std::const_pointer_cast<Port>(sw1->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink05(std::static_pointer_cast<Node>(es05), std::static_pointer_cast<Node>(sw1), es05->getPort(),
+                            std::const_pointer_cast<Port>(sw1->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
 
-    FullDuplexLink fdLink06(std::static_pointer_cast<Node>(es06), std::static_pointer_cast<Node>(sw2), es06->getPort(), std::const_pointer_cast<Port>(sw2->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink07(std::static_pointer_cast<Node>(es07), std::static_pointer_cast<Node>(sw2), es07->getPort(), std::const_pointer_cast<Port>(sw2->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink08(std::static_pointer_cast<Node>(es08), std::static_pointer_cast<Node>(sw2), es08->getPort(), std::const_pointer_cast<Port>(sw2->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink06(std::static_pointer_cast<Node>(es06), std::static_pointer_cast<Node>(sw2), es06->getPort(),
+                            std::const_pointer_cast<Port>(sw2->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink07(std::static_pointer_cast<Node>(es07), std::static_pointer_cast<Node>(sw2), es07->getPort(),
+                            std::const_pointer_cast<Port>(sw2->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink08(std::static_pointer_cast<Node>(es08), std::static_pointer_cast<Node>(sw2), es08->getPort(),
+                            std::const_pointer_cast<Port>(sw2->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
 
-    FullDuplexLink fdLink09(std::static_pointer_cast<Node>(es09), std::static_pointer_cast<Node>(sw3), es09->getPort(), std::const_pointer_cast<Port>(sw3->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink10(std::static_pointer_cast<Node>(es10), std::static_pointer_cast<Node>(sw3), es10->getPort(), std::const_pointer_cast<Port>(sw3->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink11(std::static_pointer_cast<Node>(es11), std::static_pointer_cast<Node>(sw3), es11->getPort(), std::const_pointer_cast<Port>(sw3->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink09(std::static_pointer_cast<Node>(es09), std::static_pointer_cast<Node>(sw3), es09->getPort(),
+                            std::const_pointer_cast<Port>(sw3->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink10(std::static_pointer_cast<Node>(es10), std::static_pointer_cast<Node>(sw3), es10->getPort(),
+                            std::const_pointer_cast<Port>(sw3->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink11(std::static_pointer_cast<Node>(es11), std::static_pointer_cast<Node>(sw3), es11->getPort(),
+                            std::const_pointer_cast<Port>(sw3->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
 
-    FullDuplexLink fdLink12(std::static_pointer_cast<Node>(es12), std::static_pointer_cast<Node>(sw4), es12->getPort(), std::const_pointer_cast<Port>(sw4->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink13(std::static_pointer_cast<Node>(es13), std::static_pointer_cast<Node>(sw4), es13->getPort(), std::const_pointer_cast<Port>(sw4->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink14(std::static_pointer_cast<Node>(es14), std::static_pointer_cast<Node>(sw4), es14->getPort(), std::const_pointer_cast<Port>(sw4->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink12(std::static_pointer_cast<Node>(es12), std::static_pointer_cast<Node>(sw4), es12->getPort(),
+                            std::const_pointer_cast<Port>(sw4->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink13(std::static_pointer_cast<Node>(es13), std::static_pointer_cast<Node>(sw4), es13->getPort(),
+                            std::const_pointer_cast<Port>(sw4->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink14(std::static_pointer_cast<Node>(es14), std::static_pointer_cast<Node>(sw4), es14->getPort(),
+                            std::const_pointer_cast<Port>(sw4->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
 
-    FullDuplexLink fdLink15(std::static_pointer_cast<Node>(es15), std::static_pointer_cast<Node>(sw5), es15->getPort(), std::const_pointer_cast<Port>(sw5->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink16(std::static_pointer_cast<Node>(es16), std::static_pointer_cast<Node>(sw5), es16->getPort(), std::const_pointer_cast<Port>(sw5->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink17(std::static_pointer_cast<Node>(es17), std::static_pointer_cast<Node>(sw5), es17->getPort(), std::const_pointer_cast<Port>(sw5->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink15(std::static_pointer_cast<Node>(es15), std::static_pointer_cast<Node>(sw5), es15->getPort(),
+                            std::const_pointer_cast<Port>(sw5->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink16(std::static_pointer_cast<Node>(es16), std::static_pointer_cast<Node>(sw5), es16->getPort(),
+                            std::const_pointer_cast<Port>(sw5->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink17(std::static_pointer_cast<Node>(es17), std::static_pointer_cast<Node>(sw5), es17->getPort(),
+                            std::const_pointer_cast<Port>(sw5->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
 
-    FullDuplexLink fdLink18(std::static_pointer_cast<Node>(es18), std::static_pointer_cast<Node>(sw6), es18->getPort(), std::const_pointer_cast<Port>(sw6->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink19(std::static_pointer_cast<Node>(es19), std::static_pointer_cast<Node>(sw6), es19->getPort(), std::const_pointer_cast<Port>(sw6->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink20(std::static_pointer_cast<Node>(es20), std::static_pointer_cast<Node>(sw6), es20->getPort(), std::const_pointer_cast<Port>(sw6->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink18(std::static_pointer_cast<Node>(es18), std::static_pointer_cast<Node>(sw6), es18->getPort(),
+                            std::const_pointer_cast<Port>(sw6->getPorts()[0]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink19(std::static_pointer_cast<Node>(es19), std::static_pointer_cast<Node>(sw6), es19->getPort(),
+                            std::const_pointer_cast<Port>(sw6->getPorts()[1]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink20(std::static_pointer_cast<Node>(es20), std::static_pointer_cast<Node>(sw6), es20->getPort(),
+                            std::const_pointer_cast<Port>(sw6->getPorts()[2]), SCHEDPLUS_1000_ETHERNET);
 
     /* Links connected four switches */
-    FullDuplexLink fdLink21(std::static_pointer_cast<Node>(sw0), std::static_pointer_cast<Node>(sw1), std::const_pointer_cast<Port>(sw0->getPorts()[3]), std::const_pointer_cast<Port>(sw1->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink22(std::static_pointer_cast<Node>(sw0), std::static_pointer_cast<Node>(sw2), std::const_pointer_cast<Port>(sw0->getPorts()[4]), std::const_pointer_cast<Port>(sw2->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink23(std::static_pointer_cast<Node>(sw1), std::static_pointer_cast<Node>(sw3), std::const_pointer_cast<Port>(sw1->getPorts()[4]), std::const_pointer_cast<Port>(sw3->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink24(std::static_pointer_cast<Node>(sw1), std::static_pointer_cast<Node>(sw4), std::const_pointer_cast<Port>(sw1->getPorts()[5]), std::const_pointer_cast<Port>(sw4->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink25(std::static_pointer_cast<Node>(sw2), std::static_pointer_cast<Node>(sw5), std::const_pointer_cast<Port>(sw2->getPorts()[4]), std::const_pointer_cast<Port>(sw5->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
-    FullDuplexLink fdLink26(std::static_pointer_cast<Node>(sw2), std::static_pointer_cast<Node>(sw6), std::const_pointer_cast<Port>(sw2->getPorts()[5]), std::const_pointer_cast<Port>(sw6->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink21(std::static_pointer_cast<Node>(sw0), std::static_pointer_cast<Node>(sw1),
+                            std::const_pointer_cast<Port>(sw0->getPorts()[3]),
+                            std::const_pointer_cast<Port>(sw1->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink22(std::static_pointer_cast<Node>(sw0), std::static_pointer_cast<Node>(sw2),
+                            std::const_pointer_cast<Port>(sw0->getPorts()[4]),
+                            std::const_pointer_cast<Port>(sw2->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink23(std::static_pointer_cast<Node>(sw1), std::static_pointer_cast<Node>(sw3),
+                            std::const_pointer_cast<Port>(sw1->getPorts()[4]),
+                            std::const_pointer_cast<Port>(sw3->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink24(std::static_pointer_cast<Node>(sw1), std::static_pointer_cast<Node>(sw4),
+                            std::const_pointer_cast<Port>(sw1->getPorts()[5]),
+                            std::const_pointer_cast<Port>(sw4->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink25(std::static_pointer_cast<Node>(sw2), std::static_pointer_cast<Node>(sw5),
+                            std::const_pointer_cast<Port>(sw2->getPorts()[4]),
+                            std::const_pointer_cast<Port>(sw5->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
+    FullDuplexLink fdLink26(std::static_pointer_cast<Node>(sw2), std::static_pointer_cast<Node>(sw6),
+                            std::const_pointer_cast<Port>(sw2->getPorts()[5]),
+                            std::const_pointer_cast<Port>(sw6->getPorts()[3]), SCHEDPLUS_1000_ETHERNET);
 
 
     std::vector<FullDuplexLink> fdLlinks{fdLink00, fdLink01, fdLink02, fdLink03, fdLink04, fdLink05,
-                                        fdLink06, fdLink07, fdLink08, fdLink09, fdLink10, fdLink11,
-                                        fdLink12, fdLink13, fdLink14, fdLink15, fdLink16, fdLink17,
-                                        fdLink18, fdLink19, fdLink20, fdLink21, fdLink22, fdLink23,
-                                        fdLink24, fdLink25, fdLink26};
-    for (const auto& fdLink: fdLlinks) {
+                                         fdLink06, fdLink07, fdLink08, fdLink09, fdLink10, fdLink11,
+                                         fdLink12, fdLink13, fdLink14, fdLink15, fdLink16, fdLink17,
+                                         fdLink18, fdLink19, fdLink20, fdLink21, fdLink22, fdLink23,
+                                         fdLink24, fdLink25, fdLink26};
+    for (const auto &fdLink: fdLlinks) {
         for (auto dirLink: fdLink.getLinks()) {
             link_id_t linkId = std::make_pair(dirLink->getSrcNode()->getId(), dirLink->getDestNode()->getId());
             links[linkId] = dirLink;
@@ -98,178 +131,366 @@ void Tree_7sw_21es::vSetNodesAndLinks() {
     }
 }
 
-void Tree_7sw_21es::vSetStreams() {
-    Graph graph(nodes.size());
-    graph.initGraph(nodeIdMap, links);
-    stream_id_t streamId = 0;
-    /* [es09 ~ es20] -> [es00 ~ es02]*/
-    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
-//        for (node_id_t dest = nodeNameMap["es00"]->getId(); dest <= nodeNameMap["es02"]->getId(); ++dest) {
-//            sched_time_t period = 0;
-//            uint32_t length = 0;
-//            if (dest == 0) {
-//                period = 10000000;
-//                length = 800;
-//            } else if (dest == 1) {
-//                period = 10000000;
-//                length = 800;
-//            } else {
-//                period = 10000000;
-//                length = 800;
-//            }
-//            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[src], nodeIdMap[dest]);
-//            finishStreamInit(graph, stream);
-//        }
-        for (node_id_t dest = nodeNameMap["es00"]->getId(); dest <= nodeNameMap["es02"]->getId(); ++dest) {
-            sched_time_t period = 0;
-            uint32_t length = 0;
-            if (dest == 0) {
-                period = 10000000;
-                length = 800;
-            } else if (dest == 1) {
-                period = 10000000;
-                length = 800;
-            } else {
-                period = 10000000;
-                length = 800;
-            }
-            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[dest], nodeIdMap[src]);
-            finishStreamInit(graph, stream);
-        }
-    }
-
-    /* [es09 ~ es14] -> [es03 ~ es05]*/
-    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es14"]->getId(); ++src) {
-        for (node_id_t dest = nodeNameMap["es03"]->getId(); dest <= nodeNameMap["es05"]->getId(); ++dest) {
-            sched_time_t period = 0;
-            uint32_t length = 0;
-            if (dest == 0) {
-                period = 10000000;
-                length = 800;
-            } else if (dest == 1) {
-                period = 10000000;
-                length = 800;
-            } else {
-                period = 10000000;
-                length = 800;
-            }
-            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[src], nodeIdMap[dest]);
-            finishStreamInit(graph, stream);
-        }
-//        for (node_id_t dest = nodeNameMap["es03"]->getId(); dest <= nodeNameMap["es05"]->getId(); ++dest) {
-//            sched_time_t period = 0;
-//            uint32_t length = 0;
-//            if (dest == 0) {
-//                period = 10000000;
-//                length = 800;
-//            } else if (dest == 1) {
-//                period = 10000000;
-//                length = 800;
-//            } else {
-//                period = 10000000;
-//                length = 800;
-//            }
-//            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[dest], nodeIdMap[src]);
-//            finishStreamInit(graph, stream);
-//        }
-    }
-
-    /* [es15 ~ es20] -> [es06 ~ es08]*/
-    for (node_id_t src = nodeNameMap["es15"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
-        for (node_id_t dest = nodeNameMap["es06"]->getId(); dest <= nodeNameMap["es08"]->getId(); ++dest) {
-            sched_time_t period = 0;
-            uint32_t length = 0;
-            if (dest == 0) {
-                period = 10000000;
-                length = 800;
-            } else if (dest == 1) {
-                period = 10000000;
-                length = 800;
-            } else {
-                period = 10000000;
-                length = 800;
-            }
-            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[src], nodeIdMap[dest]);
-            finishStreamInit(graph, stream);
-        }
-//        for (node_id_t dest = nodeNameMap["es06"]->getId(); dest <= nodeNameMap["es08"]->getId(); ++dest) {
-//            sched_time_t period = 0;
-//            uint32_t length = 0;
-//            if (dest == 0) {
-//                period = 10000000;
-//                length = 800;
-//            } else if (dest == 1) {
-//                period = 10000000;
-//                length = 800;
-//            } else {
-//                period = 10000000;
-//                length = 800;
-//            }
-//            auto stream = std::make_shared<Stream>(++streamId, period, length, P5, nodeIdMap[dest], nodeIdMap[src]);
-//            finishStreamInit(graph, stream);
-//        }
-    }
-
-    /* [es09 ~ es20] -> [es09 ~ es20]*/
-    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
-        for (int i = 0; i < 2; ++i) {
-            if (src % 3 == 0) {
-                node_id_t dest = src + 1;
-                auto stream = std::make_shared<Stream>(
-                        ++streamId,
-                        500000,
-                        80,
-                        P6, nodeIdMap[src], nodeIdMap[dest]);
-                finishStreamInit(graph, stream);
-                dest = src + 2;
-                stream = std::make_shared<Stream>(
-                        ++streamId,
-                        500000,
-                        80,
-                        P6, nodeIdMap[src], nodeIdMap[dest]);
-                finishStreamInit(graph, stream);
-            } else if (src % 3 == 1) {
-                node_id_t dest = src - 1;
-                auto stream = std::make_shared<Stream>(
-                        ++streamId,
-                        500000,
-                        80,
-                        P6, nodeIdMap[src], nodeIdMap[dest]);
-                finishStreamInit(graph, stream);
-                dest = src + 1;
-                stream = std::make_shared<Stream>(
-                        ++streamId,
-                        500000,
-                        80,
-                        P6, nodeIdMap[src], nodeIdMap[dest]);
-                finishStreamInit(graph, stream);
-            } else {
-                node_id_t dest = src - 1;
-                auto stream = std::make_shared<Stream>(
-                        ++streamId,
-                        500000,
-                        80,
-                        P6, nodeIdMap[src], nodeIdMap[dest]);
-                finishStreamInit(graph, stream);
-                dest = src - 2;
-                stream = std::make_shared<Stream>(
-                        ++streamId,
-                        500000,
-                        80,
-                        P6, nodeIdMap[src], nodeIdMap[dest]);
-                finishStreamInit(graph, stream);
-            }
-        }
-    }
-
-    for (int i = 0; i < streams.size(); ++i)
-        streamsId[streams[i]->getId()] = i;
-    setHyperPeriod();
-}
-
-void Tree_7sw_21es::finishStreamInit(Graph &graph, std::shared_ptr<Stream>& stream) {
+void Tree_7sw_21es::finishStreamInit(Graph &graph, std::shared_ptr<Stream> &stream) {
     setDeliveryGuarantee(stream);
     streamsGroupByPcp[stream->getPcp()].push_back(stream->getId());
     getAllRoutes(stream, graph);
     streams.push_back(stream);
+}
+/* same period and length */
+//void Tree_7sw_21es::vSetStreams() {
+//    Graph graph(nodes.size());
+//    graph.initGraph(nodeIdMap, links);
+//    stream_id_t streamId = 0;
+//    sched_time_t p5Period = 2000000;
+//    uint32_t p5Length = 400;
+//    sched_time_t p6Period = 200000;
+//    uint32_t p6Length = 80;
+//    /* [es09 ~ es20] -> [es00 ~ es02]*/
+//    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
+//        for (node_id_t dest = nodeNameMap["es00"]->getId(); dest <= nodeNameMap["es02"]->getId(); ++dest) {
+//            auto stream1 = std::make_shared<Stream>(++streamId, p5Period, p5Length, P5, nodeIdMap[src], nodeIdMap[dest]);
+//            finishStreamInit(graph, stream1);
+//            auto stream2 = std::make_shared<Stream>(++streamId, p5Period, p5Length, P5, nodeIdMap[dest], nodeIdMap[src]);
+//            finishStreamInit(graph, stream2);
+//        }
+//    }
+//
+//    /* [es09 ~ es14] -> [es03 ~ es05]*/
+//    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es14"]->getId(); ++src) {
+//        for (node_id_t dest = nodeNameMap["es03"]->getId(); dest <= nodeNameMap["es05"]->getId(); ++dest) {
+//            auto stream1 = std::make_shared<Stream>(++streamId, p5Period, p5Length, P5, nodeIdMap[src], nodeIdMap[dest]);
+//            finishStreamInit(graph, stream1);
+//            auto stream2 = std::make_shared<Stream>(++streamId, p5Period, p5Length, P5, nodeIdMap[dest], nodeIdMap[src]);
+//            finishStreamInit(graph, stream2);
+//        }
+//    }
+//
+//    /* [es15 ~ es20] -> [es06 ~ es08]*/
+//    for (node_id_t src = nodeNameMap["es15"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
+//        for (node_id_t dest = nodeNameMap["es06"]->getId(); dest <= nodeNameMap["es08"]->getId(); ++dest) {
+//            auto stream1 = std::make_shared<Stream>(++streamId, p5Period, p5Length, P5, nodeIdMap[src], nodeIdMap[dest]);
+//            finishStreamInit(graph, stream1);
+//            auto stream2 = std::make_shared<Stream>(++streamId, p5Period, p5Length, P5, nodeIdMap[dest], nodeIdMap[src]);
+//            finishStreamInit(graph, stream2);
+//        }
+//    }
+//
+//    /* [es03 ~ es20] -> [es03 ~ es20]*/
+//    for (node_id_t src = nodeNameMap["es03"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
+//        for (int i = 0; i < 1; ++i) {
+//            if (src % 3 == 0) {
+//                node_id_t dest = src + 1;
+//                auto stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//                dest = src + 2;
+//                stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//            } else if (src % 3 == 1) {
+//                node_id_t dest = src - 1;
+//                auto stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//                dest = src + 1;
+//                stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//            } else {
+//                node_id_t dest = src - 1;
+//                auto stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//                dest = src - 2;
+//                stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//            }
+//        }
+//    }
+//
+//    for (int i = 0; i < streams.size(); ++i)
+//        streamsId[streams[i]->getId()] = i;
+//    setHyperPeriod();
+//}
+
+/* same period and different length */
+//void Tree_7sw_21es::vSetStreams() {
+//    Graph graph(nodes.size());
+//    graph.initGraph(nodeIdMap, links);
+//    stream_id_t streamId = 0;
+//    sched_time_t p5Period = 5000000;
+//    sched_time_t p6Period = 2000000;
+//    /* [es09 ~ es20] -> [es00 ~ es02]*/
+//    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
+//        for (node_id_t dest = nodeNameMap["es00"]->getId(); dest <= nodeNameMap["es02"]->getId(); ++dest) {
+//            auto stream1 = std::make_shared<Stream>(++streamId, p5Period, Stream::getRandomFrameLength(P5), P5, nodeIdMap[src], nodeIdMap[dest]);
+//            finishStreamInit(graph, stream1);
+//            auto stream2 = std::make_shared<Stream>(++streamId, p5Period, Stream::getRandomFrameLength(P5), P5, nodeIdMap[dest], nodeIdMap[src]);
+//            finishStreamInit(graph, stream2);
+//        }
+//    }
+//
+//    /* [es09 ~ es14] -> [es03 ~ es05]*/
+//    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es14"]->getId(); ++src) {
+//        for (node_id_t dest = nodeNameMap["es03"]->getId(); dest <= nodeNameMap["es05"]->getId(); ++dest) {
+//            auto stream1 = std::make_shared<Stream>(++streamId, p5Period, Stream::getRandomFrameLength(P5), P5, nodeIdMap[src], nodeIdMap[dest]);
+//            finishStreamInit(graph, stream1);
+//            auto stream2 = std::make_shared<Stream>(++streamId, p5Period, Stream::getRandomFrameLength(P5), P5, nodeIdMap[dest], nodeIdMap[src]);
+//            finishStreamInit(graph, stream2);
+//        }
+//    }
+//
+//    /* [es15 ~ es20] -> [es06 ~ es08]*/
+//    for (node_id_t src = nodeNameMap["es15"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
+//        for (node_id_t dest = nodeNameMap["es06"]->getId(); dest <= nodeNameMap["es08"]->getId(); ++dest) {
+//            auto stream1 = std::make_shared<Stream>(++streamId, p5Period, Stream::getRandomFrameLength(P5), P5, nodeIdMap[src], nodeIdMap[dest]);
+//            finishStreamInit(graph, stream1);
+//            auto stream2 = std::make_shared<Stream>(++streamId, p5Period, Stream::getRandomFrameLength(P5), P5, nodeIdMap[dest], nodeIdMap[src]);
+//            finishStreamInit(graph, stream2);
+//        }
+//    }
+//
+//    /* [es09 ~ es20] -> [es09 ~ es20]*/
+//    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
+//        for (int i = 0; i < 7; ++i) {
+//            if (src % 3 == 0) {
+//                node_id_t dest = src + 1;
+//                auto stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        Stream::getRandomFrameLength(P6),
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//                dest = src + 2;
+//                stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        Stream::getRandomFrameLength(P6),
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//            } else if (src % 3 == 1) {
+//                node_id_t dest = src - 1;
+//                auto stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        Stream::getRandomFrameLength(P6),
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//                dest = src + 1;
+//                stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        Stream::getRandomFrameLength(P6),
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//            } else {
+//                node_id_t dest = src - 1;
+//                auto stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        Stream::getRandomFrameLength(P6),
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//                dest = src - 2;
+//                stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        p6Period,
+//                        Stream::getRandomFrameLength(P6),
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//            }
+//        }
+//    }
+//
+//    for (int i = 0; i < streams.size(); ++i)
+//        streamsId[streams[i]->getId()] = i;
+//    setHyperPeriod();
+//}
+
+/* different period and same length */
+//void Tree_7sw_21es::vSetStreams() {
+//    Graph graph(nodes.size());
+//    graph.initGraph(nodeIdMap, links);
+//    stream_id_t streamId = 0;
+//    uint32_t p5Length = 400;
+//    uint32_t p6Length = 80;
+//    /* [es09 ~ es20] -> [es00 ~ es02]*/
+//    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
+//        for (node_id_t dest = nodeNameMap["es00"]->getId(); dest <= nodeNameMap["es02"]->getId(); ++dest) {
+//            auto stream1 = std::make_shared<Stream>(++streamId, Stream::getRandomPeriod(P5), p5Length, P5, nodeIdMap[src], nodeIdMap[dest]);
+//            finishStreamInit(graph, stream1);
+//            auto stream2 = std::make_shared<Stream>(++streamId, Stream::getRandomPeriod(P5), p5Length, P5, nodeIdMap[dest], nodeIdMap[src]);
+//            finishStreamInit(graph, stream2);
+//        }
+//    }
+//
+//    /* [es09 ~ es14] -> [es03 ~ es05]*/
+//    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es14"]->getId(); ++src) {
+//        for (node_id_t dest = nodeNameMap["es03"]->getId(); dest <= nodeNameMap["es05"]->getId(); ++dest) {
+//            auto stream1 = std::make_shared<Stream>(++streamId, Stream::getRandomPeriod(P5), p5Length, P5, nodeIdMap[src], nodeIdMap[dest]);
+//            finishStreamInit(graph, stream1);
+//            auto stream2 = std::make_shared<Stream>(++streamId, Stream::getRandomPeriod(P5), p5Length, P5, nodeIdMap[dest], nodeIdMap[src]);
+//            finishStreamInit(graph, stream2);
+//        }
+//    }
+//
+//    /* [es15 ~ es20] -> [es06 ~ es08]*/
+//    for (node_id_t src = nodeNameMap["es15"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
+//        for (node_id_t dest = nodeNameMap["es06"]->getId(); dest <= nodeNameMap["es08"]->getId(); ++dest) {
+//            auto stream1 = std::make_shared<Stream>(++streamId, Stream::getRandomPeriod(P5), p5Length, P5, nodeIdMap[src], nodeIdMap[dest]);
+//            finishStreamInit(graph, stream1);
+//            auto stream2 = std::make_shared<Stream>(++streamId, Stream::getRandomPeriod(P5), p5Length, P5, nodeIdMap[dest], nodeIdMap[src]);
+//            finishStreamInit(graph, stream2);
+//        }
+//    }
+//
+//    /* [es09 ~ es20] -> [es09 ~ es20]*/
+//    for (node_id_t src = nodeNameMap["es09"]->getId(); src <= nodeNameMap["es20"]->getId(); ++src) {
+//        for (int i = 0; i < 3; ++i) {
+//            if (src % 3 == 0) {
+//                node_id_t dest = src + 1;
+//                auto stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        Stream::getRandomPeriod(P6),
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//                dest = src + 2;
+//                stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        Stream::getRandomPeriod(P6),
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//            } else if (src % 3 == 1) {
+//                node_id_t dest = src - 1;
+//                auto stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        Stream::getRandomPeriod(P6),
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//                dest = src + 1;
+//                stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        Stream::getRandomPeriod(P6),
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//            } else {
+//                node_id_t dest = src - 1;
+//                auto stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        Stream::getRandomPeriod(P6),
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//                dest = src - 2;
+//                stream = std::make_shared<Stream>(
+//                        ++streamId,
+//                        Stream::getRandomPeriod(P6),
+//                        p6Length,
+//                        P6, nodeIdMap[src], nodeIdMap[dest]);
+//                finishStreamInit(graph, stream);
+//            }
+//        }
+//    }
+//
+//    for (int i = 0; i < streams.size(); ++i)
+//        streamsId[streams[i]->getId()] = i;
+//    setHyperPeriod();
+//}
+
+/* different period and different length */
+void Tree_7sw_21es::vSetStreams(size_t streamsNum, std::string topology) {
+    Graph graph(nodes.size());
+    graph.initGraph(nodeIdMap, links);
+    stream_id_t streamId = 0;
+    std::default_random_engine e;
+    std::bernoulli_distribution u;
+    /* [es03 ~ es20] -> [es03 ~ es20]*/
+    for (size_t i = 0; i < streamsNum; ++i) {
+        if (i < streamsNum * 0.75) {
+            node_id_t src, dest;
+            src = esList[getRandInt(nodeNameMap["es03"]->getId(), nodeNameMap["es20"]->getId())]->getId();
+            if (src % 3 == 0) {
+                if (u(e))
+                    dest = src + 1;
+                else
+                    dest = src + 2;
+                auto stream = std::make_shared<Stream>(
+                        ++streamId,
+                        Stream::getRandomPeriod(P6),
+                        Stream::getRandomFrameLength(P6),
+                        P6, nodeIdMap[src], nodeIdMap[dest]);
+                finishStreamInit(graph, stream);
+            } else if (src % 3 == 1) {
+                if (u(e))
+                    dest = src - 1;
+                else
+                    dest = src + 1;
+                auto stream = std::make_shared<Stream>(
+                        ++streamId,
+                        Stream::getRandomPeriod(P6),
+                        Stream::getRandomFrameLength(P6),
+                        P6, nodeIdMap[src], nodeIdMap[dest]);
+                finishStreamInit(graph, stream);
+            } else {
+                if (u(e))
+                    dest = src - 1;
+                else
+                    dest = src - 2;
+                dest = src - 1;
+                auto stream = std::make_shared<Stream>(
+                        ++streamId,
+                        Stream::getRandomPeriod(P6),
+                        Stream::getRandomFrameLength(P6),
+                        P6, nodeIdMap[src], nodeIdMap[dest]);
+                finishStreamInit(graph, stream);
+            }
+        } else {
+            /* [es09 ~ es20] -> [es00 ~ es08]*/
+            node_id_t src, dest;
+            std::vector<node_id_t> left{0, 1, 2, 3, 4, 5};
+            std::vector<node_id_t> right{0, 1, 2, 6, 7, 8};
+            src = esList[getRandInt(nodeNameMap["es09"]->getId(), nodeNameMap["es20"]->getId())]->getId();
+            if (src < 15)
+                dest = esList[left[getRandInt(0, 5)]]->getId();
+            else
+                dest = esList[right[getRandInt(0, 5)]]->getId();
+            if (u(e)) {
+                auto stream = std::make_shared<Stream>(++streamId, Stream::getRandomPeriod(P5), Stream::getRandomFrameLength(P5), P5,
+                                                        nodeIdMap[src], nodeIdMap[dest]);
+                finishStreamInit(graph, stream);
+            } else {
+                auto stream = std::make_shared<Stream>(++streamId, Stream::getRandomPeriod(P5), Stream::getRandomFrameLength(P5), P5,
+                                                        nodeIdMap[dest], nodeIdMap[src]);
+                finishStreamInit(graph, stream);
+            }
+
+        }
+    }
+    for (int i = 0; i < streams.size(); ++i)
+        streamsId[streams[i]->getId()] = i;
+    setHyperPeriod();
 }
