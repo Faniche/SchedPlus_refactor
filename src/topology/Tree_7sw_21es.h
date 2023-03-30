@@ -16,7 +16,6 @@ private:
 
     void vSetStreams(size_t streamsNum, std::string topology) override;
 
-    void finishStreamInit(Graph &graph, std::shared_ptr<Stream>& stream);
 };
 
 

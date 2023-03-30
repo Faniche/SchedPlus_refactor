@@ -22,6 +22,12 @@ int Input::getRandInt(int min, int max) {
     return randInteger(generator);
 }
 
+void Input::finishStreamInit(Graph &graph, std::shared_ptr<Stream> &stream) {
+    setDeliveryGuarantee(stream);
+    streamsGroupByPcp[stream->getPcp()].push_back(stream->getId());
+    getAllRoutes(stream, graph);
+    streams.push_back(stream);
+}
 
 void Input::setDeliveryGuarantee(std::shared_ptr<Stream> stream) {
     switch (stream->getPcp()) {

@@ -30,6 +30,8 @@ protected:
 
     int getRandInt(int min, int max);
 
+    void finishStreamInit(Graph &graph, std::shared_ptr<Stream>& stream);
+
 public:
     std::vector<std::shared_ptr<Node>> nodes;
     std::vector<std::shared_ptr<Node>> esList;

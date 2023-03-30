@@ -131,12 +131,6 @@ void Tree_7sw_21es::vSetNodesAndLinks() {
     }
 }
 
-void Tree_7sw_21es::finishStreamInit(Graph &graph, std::shared_ptr<Stream> &stream) {
-    setDeliveryGuarantee(stream);
-    streamsGroupByPcp[stream->getPcp()].push_back(stream->getId());
-    getAllRoutes(stream, graph);
-    streams.push_back(stream);
-}
 /* same period and length */
 //void Tree_7sw_21es::vSetStreams() {
 //    Graph graph(nodes.size());
